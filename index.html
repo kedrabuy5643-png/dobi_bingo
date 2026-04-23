@@ -3,125 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dobi Bingo</title>
+    <title>Dobi Bingo Professional</title>
     <style>
-        body { background: #1a1a2e; color: white; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
+        body { background: #1a1a2e; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 10px; text-align: center; }
         .header-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
         .stat-box { background: #2d2d44; padding: 10px; border-radius: 8px; font-size: 11px; }
         .val { display: block; font-size: 14px; font-weight: bold; color: #4ecca3; }
-        
         .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 12px; }
-        .num-btn { background: #3d3d5c; color: white; border: 1px solid #555; padding: 10px 0; border-radius: 5px; font-weight: bold; font-size: 12px; }
-
-        /* የካርቴላ ዲዛይን */
-        #cartela-view { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: #333; padding: 15px; border-radius: 15px; width: 92%; max-width: 360px; z-index: 1000; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        .num-btn { background: #3d3d5c; color: white; border: 1px solid #555; padding: 10px 0; border-radius: 5px; font-weight: bold; }
         
-        /* B-I-N-G-O ፊደላት */
-        .bingo-header { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 5px; }
-        .bingo-letter { font-size: 24px; font-weight: 900; color: #1a1a2e; padding: 5px 0; }
-
+        /* Professional Cartela */
+        #cartela-view { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: #333; padding: 15px; border-radius: 15px; width: 92%; max-width: 360px; z-index: 1000; box-shadow: 0 0 40px rgba(0,0,0,0.9); border: 3px solid #4ecca3; }
+        .bingo-header { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 8px; background: #1a1a2e; border-radius: 5px; padding: 5px 0; }
+        .bingo-letter { font-size: 26px; font-weight: 900; color: #4ecca3; }
         .cartela-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-        .cell { border: 1px solid #eee; padding: 12px 0; font-size: 18px; font-weight: bold; background: #f9f9f9; border-radius: 4px; color: #1a1a2e; }
-        .free { background: #ff4757 !important; color: white; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
-        
-        .close-btn { background: #1a1a2e; color: white; border: none; padding: 12px; border-radius: 8px; margin-top: 15px; font-weight: bold; width: 100%; font-size: 16px; }
+        .cell { border: 2px solid #eee; padding: 12px 0; font-size: 20px; font-weight: 900; background: #f9f9f9; border-radius: 6px; color: #1a1a2e; }
+        .free { background: #ff4757 !important; color: white; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+        .close-btn { background: #ff4757; color: white; border: none; padding: 15px; border-radius: 8px; margin-top: 15px; font-weight: bold; width: 100%; font-size: 18px; }
         #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; }
     </style>
 </head>
 <body>
-
     <div id="main-ui">
         <div class="header-stats">
             <div class="stat-box">Main Wallet<span class="val">0.00</span></div>
             <div class="stat-box">Play Wallet<span class="val">0.00</span></div>
             <div class="stat-box">Stake<span class="val">10</span></div>
         </div>
-        <p style="color: #aaa; font-size: 13px;">ለመቁረጥ የሚፈልጉትን ቁጥር ይጫኑ</p>
         <div class="grid-container" id="bingoGrid"></div>
     </div>
-
     <div id="overlay"></div>
     <div id="cartela-view">
-        <h3 id="selTitle" style="margin-bottom:10px; color: #555; font-size: 14px;"></h3>
-        
         <div class="bingo-header">
-            <div class="bingo-letter">B</div>
-            <div class="bingo-letter">I</div>
-            <div class="bingo-letter">N</div>
-            <div class="bingo-letter">G</div>
-            <div class="bingo-letter">O</div>
+            <div class="bingo-letter">B</div><div class="bingo-letter">I</div><div class="bingo-letter">N</div><div class="bingo-letter">G</div><div class="bingo-letter">O</div>
         </div>
-
         <div class="cartela-grid" id="cartelaGrid"></div>
         <button class="close-btn" onclick="closeCartela()">ተመለስ</button>
     </div>
-
     <script>
         const grid = document.getElementById('bingoGrid');
         for (let i = 1; i <= 100; i++) {
             const btn = document.createElement('button');
-            btn.className = 'num-btn';
-            btn.innerText = i;
-            btn.onclick = () => openCartela(i);
-            grid.appendChild(btn);
+            btn.className = 'num-btn'; btn.innerText = i; btn.onclick = () => openCartela(i); grid.appendChild(btn);
         }
-
         function openCartela(n) {
-            document.getElementById('selTitle').innerText = "ካርቴላ ቁጥር " + n;
-            const cGrid = document.getElementById('cartelaGrid');
-            cGrid.innerHTML = '';
-            
-            // ለእያንዳንዱ ረድፍ ትክክለኛ የቢንጎ ቁጥሮችን ማመንጨት
-            let b = genRow(1, 15);
-            let i = genRow(16, 30);
-            let n_row = genRow(31, 45);
-            let g = genRow(46, 60);
-            let o = genRow(61, 75);
-
-            for(let row=0; row<5; row++) {
-                // B Column
-                addCell(b[row]);
-                // I Column
-                addCell(i[row]);
-                // N Column
-                if(row === 2) {
-                    const free = document.createElement('div');
-                    free.className = 'cell free';
-                    free.innerText = 'FREE';
-                    cGrid.appendChild(free);
-                } else {
-                    addCell(n_row[row > 2 ? row-1 : row]);
+            const cGrid = document.getElementById('cartelaGrid'); cGrid.innerHTML = '';
+            let cols = [gen(1,15), gen(16,30), gen(31,45), gen(46,60), gen(61,75)];
+            for(let r=0; r<5; r++) {
+                for(let c=0; c<5; c++) {
+                    const cell = document.createElement('div'); cell.className = 'cell';
+                    if(r===2 && c===2) { cell.innerText='FREE'; cell.className='cell free'; }
+                    else { cell.innerText = cols[c][r]; }
+                    cGrid.appendChild(cell);
                 }
-                // G Column
-                addCell(g[row]);
-                // O Column
-                addCell(o[row]);
             }
-
             document.getElementById('overlay').style.display = 'block';
             document.getElementById('cartela-view').style.display = 'block';
         }
-
-        function genRow(min, max) {
-            let arr = [];
-            while(arr.length < 5) {
-                let r = Math.floor(Math.random() * (max - min + 1)) + min;
-                if(!arr.includes(r)) arr.push(r);
-            }
-            return arr;
+        function gen(min, max) {
+            let a = []; while(a.length < 5) { let r = Math.floor(Math.random() * (max-min+1)) + min; if(!a.includes(r)) a.push(r); } return a;
         }
-
-        function addCell(val) {
-            const cell = document.createElement('div');
-            cell.className = 'cell';
-            cell.innerText = val;
-            document.getElementById('cartelaGrid').appendChild(cell);
-        }
-
-        function closeCartela() {
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('cartela-view').style.display = 'none';
-        }
+        function closeCartela() { document.getElementById('overlay').style.display = 'none'; document.getElementById('cartela-view').style.display = 'none'; }
     </script>
 </body>
 </html>
