@@ -3,28 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dobi Bingo Timer</title>
+    <title>Dobi Bingo - Game Start</title>
     <style>
-        body { background: #1a1a2e; color: white; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
+        body { background: #1a1a2e; color: white; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; overflow: hidden; }
         .header-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
         .stat-box { background: #2d2d44; padding: 10px; border-radius: 8px; font-size: 11px; }
         .val { display: block; font-size: 14px; font-weight: bold; color: #4ecca3; }
         .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 12px; }
         .num-btn { background: #3d3d5c; color: white; border: 1px solid #555; padding: 10px 0; border-radius: 5px; font-weight: bold; }
-        
-        /* Cartela & Timer Style */
-        #cartela-view { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: #333; padding: 15px; border-radius: 15px; width: 92%; max-width: 360px; z-index: 1000; box-shadow: 0 0 40px rgba(0,0,0,0.9); }
-        .timer-badge { background: #ff4757; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 18px; margin-bottom: 10px; display: inline-block; }
-        .bingo-header { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 8px; background: #1a1a2e; border-radius: 5px; padding: 5px 0; }
-        .bingo-letter { font-size: 26px; font-weight: 900; color: #4ecca3; }
-        .cartela-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-        .cell { border: 2px solid #eee; padding: 12px 0; font-size: 20px; font-weight: 900; background: #f9f9f9; border-radius: 6px; color: #1a1a2e; }
-        .free { background: #ff4757 !important; color: white; font-size: 11px; display: flex; align-items: center; justify-content: center; }
-        .close-btn { background: #1a1a2e; color: white; border: none; padding: 15px; border-radius: 8px; margin-top: 15px; font-weight: bold; width: 100%; font-size: 18px; }
+
+        /* Game Screen */
+        #game-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; z-index: 2000; padding: 10px; box-sizing: border-box; }
+        .called-number-circle { width: 80px; height: 80px; background: #4ecca3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; margin: 20px auto; color: #1a1a2e; border: 4px solid white; box-shadow: 0 0 20px rgba(78, 204, 163, 0.5); }
+        .last-numbers { display: flex; justify-content: center; gap: 5px; margin-bottom: 20px; height: 30px; }
+        .last-num { background: #3d3d5c; padding: 5px 10px; border-radius: 4px; font-size: 12px; }
+
+        /* Cartela in Game */
+        .mini-cartela { background: white; color: #333; padding: 10px; border-radius: 10px; width: 100%; max-width: 340px; margin: 0 auto; }
+        .bingo-header { display: grid; grid-template-columns: repeat(5, 1fr); background: #1a1a2e; color: #4ecca3; font-weight: bold; padding: 5px 0; border-radius: 5px 5px 0 0; }
+        .cartela-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
+        .cell { border: 1px solid #eee; padding: 10px 0; font-size: 18px; font-weight: bold; position: relative; }
+        .marked { background: #4ecca3 !important; color: white; border-radius: 50%; }
+        .free { background: #ff4757; color: white; font-size: 9px; display: flex; align-items: center; justify-content: center; }
+
+        #cartela-view { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: #333; padding: 15px; border-radius: 15px; width: 92%; max-width: 360px; z-index: 1000; }
         #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; }
+        .timer-badge { background: #ff4757; color: white; padding: 5px 15px; border-radius: 20px; margin-bottom: 10px; display: inline-block; }
     </style>
 </head>
 <body>
+
     <div id="main-ui">
         <div class="header-stats">
             <div class="stat-box">Main Wallet<span class="val">0.00</span></div>
@@ -35,41 +43,65 @@
     </div>
 
     <div id="overlay"></div>
+    
     <div id="cartela-view">
         <div id="timer-display" class="timer-badge">30s</div>
+        <div id="cartela-content"></div>
+        <button id="action-btn" style="background:#1a1a2e; color:white; width:100%; padding:15px; border:none; border-radius:8px; margin-top:10px; font-weight:bold;" onclick="closeOrStart()">ተመለስ</button>
+    </div>
+
+    <div id="game-screen">
+        <div class="last-numbers" id="history"></div>
+        <div class="called-number-circle" id="current-num">--</div>
+        <div id="game-status" style="margin-bottom: 10px; font-weight: bold; color: #4ecca3;">ቁጥሮች በመጠባበቅ ላይ...</div>
         
-        <div class="bingo-header">
-            <div class="bingo-letter">B</div><div class="bingo-letter">I</div><div class="bingo-letter">N</div><div class="bingo-letter">G</div><div class="bingo-letter">O</div>
+        <div class="mini-cartela">
+            <div class="bingo-header"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
+            <div class="cartela-grid" id="gameCartelaGrid"></div>
         </div>
-        <div class="cartela-grid" id="cartelaGrid"></div>
-        <button id="action-btn" class="close-btn" onclick="closeCartela()">ተመለስ</button>
+        
+        <button onclick="checkBingo()" style="background:#4ecca3; color:#1a1a2e; width:100%; padding:15px; border:none; border-radius:8px; margin-top:15px; font-weight:bold; font-size:18px;">BINGO!</button>
     </div>
 
     <script>
         let timeLeft = 30;
         let timerId = null;
+        let gameNumbers = [];
+        let calledNumbers = [];
+        let myNumbers = [];
 
-        const grid = document.getElementById('bingoGrid');
+        // 100 ቁጥሮችን መፍጠር
         for (let i = 1; i <= 100; i++) {
             const btn = document.createElement('button');
-            btn.className = 'num-btn'; btn.innerText = i; btn.onclick = () => openCartela(i); grid.appendChild(btn);
+            btn.className = 'num-btn'; btn.innerText = i; 
+            btn.onclick = () => openCartela(i);
+            document.getElementById('bingoGrid').appendChild(btn);
         }
 
         function openCartela(n) {
-            const cGrid = document.getElementById('cartelaGrid'); cGrid.innerHTML = '';
+            myNumbers = [];
             let cols = [gen(1,15), gen(16,30), gen(31,45), gen(46,60), gen(61,75)];
+            const content = document.getElementById('cartela-content');
+            content.innerHTML = '<div class="bingo-header" style="background:#333"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>';
+            const grid = document.createElement('div');
+            grid.className = 'cartela-grid';
+            
             for(let r=0; r<5; r++) {
                 for(let c=0; c<5; c++) {
-                    const cell = document.createElement('div'); cell.className = 'cell';
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
                     if(r===2 && c===2) { cell.innerText='FREE'; cell.className='cell free'; }
-                    else { cell.innerText = cols[c][r]; }
-                    cGrid.appendChild(cell);
+                    else { 
+                        let num = cols[c][r];
+                        cell.innerText = num;
+                        myNumbers.push(num);
+                    }
+                    grid.appendChild(cell);
                 }
             }
+            content.appendChild(grid);
             document.getElementById('overlay').style.display = 'block';
             document.getElementById('cartela-view').style.display = 'block';
-            
-            // ታይመሩን አስጀምር
             startTimer();
         }
 
@@ -77,15 +109,9 @@
             timeLeft = 30;
             const display = document.getElementById('timer-display');
             const btn = document.getElementById('action-btn');
-            display.style.background = '#ff4757';
-            display.innerText = timeLeft + "s";
-            
-            if(timerId) clearInterval(timerId);
-            
             timerId = setInterval(() => {
                 timeLeft--;
                 display.innerText = timeLeft + "s";
-                
                 if(timeLeft <= 0) {
                     clearInterval(timerId);
                     display.innerText = "ጨዋታ ተጀምሯል!";
@@ -95,14 +121,58 @@
             }, 1000);
         }
 
+        function closeOrStart() {
+            const btn = document.getElementById('action-btn');
+            if(btn.innerText === "ወደ ጨዋታው ግባ") {
+                startGame();
+            } else {
+                clearInterval(timerId);
+                document.getElementById('overlay').style.display = 'none';
+                document.getElementById('cartela-view').style.display = 'none';
+            }
+        }
+
+        function startGame() {
+            document.getElementById('cartela-view').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            
+            // ካርቴላውን ወደ ጨዋታው ገጽ ገልብጥ
+            const gameGrid = document.getElementById('gameCartelaGrid');
+            gameGrid.innerHTML = document.querySelector('#cartela-content .cartela-grid').innerHTML;
+            
+            // ቁጥሮችን ማውጣት ጀምር
+            let allBingoNums = Array.from({length: 75}, (_, i) => i + 1);
+            allBingoNums.sort(() => Math.random() - 0.5);
+            
+            let i = 0;
+            const gameInterval = setInterval(() => {
+                if(i >= 75) { clearInterval(gameInterval); return; }
+                
+                let current = allBingoNums[i];
+                calledNumbers.push(current);
+                document.getElementById('current-num').innerText = current;
+                document.getElementById('game-status').innerText = "ቁጥር " + current + " ወጥቷል!";
+                
+                // በካርቴላው ላይ ቁጥሩ ካለ ምልክት አድርግ
+                const cells = document.querySelectorAll('#gameCartelaGrid .cell');
+                cells.forEach(cell => {
+                    if(cell.innerText == current) cell.classList.add('marked');
+                });
+
+                // ታሪክ ላይ ጨምር
+                const hist = document.getElementById('history');
+                hist.innerHTML = `<div class="last-num">${current}</div>` + hist.innerHTML;
+                
+                i++;
+            }, 4000); // በየ 4 ሰከንዱ ቁጥር ይጠራል
+        }
+
         function gen(min, max) {
             let a = []; while(a.length < 5) { let r = Math.floor(Math.random() * (max-min+1)) + min; if(!a.includes(r)) a.push(r); } return a;
         }
 
-        function closeCartela() {
-            clearInterval(timerId);
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('cartela-view').style.display = 'none';
+        function checkBingo() {
+            alert("ቢንጎ ተፈትሾ በቅርቡ ውጤቱ ይገለጻል!");
         }
     </script>
 </body>
