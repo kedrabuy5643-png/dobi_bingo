@@ -5,33 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dobi Bingo</title>
     <style>
-        body { background: #1a1a2e; color: white; font-family: sans-serif; margin: 0; padding: 10px; }
+        body { background: #1a1a2e; color: white; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
         .header-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-        .stat-box { background: #2d2d44; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; }
+        .stat-box { background: #2d2d44; padding: 10px; border-radius: 8px; font-size: 12px; }
         .val { display: block; font-size: 16px; font-weight: bold; color: #4ecca3; }
+        
+        /* ቁጥሮች መምረጫ */
         .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 12px; }
         .num-btn { background: #3d3d5c; color: white; border: 1px solid #555; padding: 12px 0; border-radius: 6px; font-weight: bold; }
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #16213e; display: flex; justify-content: space-around; padding: 12px 0; }
+        
+        /* የካርቴላ ዲዛይን */
+        #cartela-view { display: none; margin-top: 20px; background: #fff; color: #333; padding: 15px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .cartela-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
+        .cartela-cell { border: 1px solid #ccc; padding: 10px 0; font-weight: bold; font-size: 18px; background: #f9f9f9; }
+        .free { background: #e94560 !important; color: white; }
+        .close-btn { background: #e94560; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin-top: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="header-stats">
-        <div class="stat-box">Main Wallet<span class="val">0</span></div>
-        <div class="stat-box">Play Wallet<span class="val">0</span></div>
-        <div class="stat-box">Stake<span class="val">10</span></div>
+
+    <div id="main-ui">
+        <div class="header-stats">
+            <div class="stat-box">Main Wallet<span class="val">0</span></div>
+            <div class="stat-box">Play Wallet<span class="val">0</span></div>
+            <div class="stat-box">Stake<span class="val">10</span></div>
+        </div>
+        <h3>ቁጥር ይምረጡ</h3>
+        <div class="grid-container" id="bingoGrid"></div>
     </div>
-    <div class="grid-container" id="bingoGrid"></div>
-    <div class="nav-bar">
-        <span>🎮 Game</span><span>🕒 History</span><span>💰 Wallet</span><span>👤 Profile</span>
+
+    <div id="cartela-view">
+        <h2 style="margin:0; color:#1a1a2e;">የእርስዎ ካርቴላ</h2>
+        <p id="selected-num-text" style="font-weight:bold;"></p>
+        <div class="cartela-grid" id="cartelaGrid"></div>
+        <button class="close-btn" onclick="closeCartela()">ተመለስ</button>
     </div>
+
     <script>
         const grid = document.getElementById('bingoGrid');
+        const cartelaView = document.getElementById('cartela-view');
+        const mainUI = document.getElementById('main-ui');
+
+        // 1-100 ቁጥሮችን መፍጠር
         for (let i = 1; i <= 100; i++) {
             const b = document.createElement('button');
             b.className = 'num-btn';
             b.innerText = i;
-            b.onclick = () => alert("ቁጥር " + i + " ተመርጧል!");
+            b.onclick = () => showCartela(i);
             grid.appendChild(b);
+        }
+
+        function showCartela(num) {
+            mainUI.style.display = 'none';
+            cartelaView.style.display = 'block';
+            document.getElementById('selected-num-text').innerText = "የተመረጠው ቁጥር፦ " + num;
+            
+            const cartelaGrid = document.getElementById('cartelaGrid');
+            cartelaGrid.innerHTML = ''; // የድሮውን ማጽዳት
+
+            // 25 የካርቴላ ቁጥሮችን በዘፈቀደ መፍጠር
+            let numbers = [];
+            while(numbers.length < 24){
+                let r = Math.floor(Math.random() * 75) + 1;
+                if(numbers.indexOf(r) === -1) numbers.push(r);
+            }
+
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cartela-cell';
+                if(i === 12) {
+                    cell.innerText = "FREE";
+                    cell.classList.add('free');
+                } else {
+                    cell.innerText = numbers.pop();
+                }
+                cartelaGrid.appendChild(cell);
+            }
+        }
+
+        function closeCartela() {
+            cartelaView.style.display = 'none';
+            mainUI.style.display = 'block';
         }
     </script>
 </body>
