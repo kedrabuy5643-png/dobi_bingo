@@ -10,18 +10,22 @@
         .stat-box { background: #2d2d44; padding: 10px; border-radius: 8px; font-size: 11px; }
         .val { display: block; font-size: 14px; font-weight: bold; color: #4ecca3; }
         
-        /* ቁጥር መምረጫ */
-        #main-ui { display: block; }
         .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 12px; }
         .num-btn { background: #3d3d5c; color: white; border: 1px solid #555; padding: 10px 0; border-radius: 5px; font-weight: bold; font-size: 12px; }
 
-        /* የካርቴላ ማሳያ (Popup) */
-        #cartela-view { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: #333; padding: 20px; border-radius: 15px; width: 90%; max-width: 350px; z-index: 1000; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
-        .cartela-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 15px; }
-        .cell { border: 1px solid #ddd; padding: 12px 0; font-size: 16px; font-weight: bold; background: #fdfdfd; border-radius: 4px; }
-        .free { background: #ff4757 !important; color: white; font-size: 10px; line-height: 20px; }
-        .close-btn { background: #1a1a2e; color: white; border: none; padding: 12px 25px; border-radius: 8px; margin-top: 20px; font-weight: bold; width: 100%; }
-        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; }
+        /* የካርቴላ ዲዛይን */
+        #cartela-view { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: #333; padding: 15px; border-radius: 15px; width: 92%; max-width: 360px; z-index: 1000; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        
+        /* B-I-N-G-O ፊደላት */
+        .bingo-header { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 5px; }
+        .bingo-letter { font-size: 24px; font-weight: 900; color: #1a1a2e; padding: 5px 0; }
+
+        .cartela-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+        .cell { border: 1px solid #eee; padding: 12px 0; font-size: 18px; font-weight: bold; background: #f9f9f9; border-radius: 4px; color: #1a1a2e; }
+        .free { background: #ff4757 !important; color: white; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+        
+        .close-btn { background: #1a1a2e; color: white; border: none; padding: 12px; border-radius: 8px; margin-top: 15px; font-weight: bold; width: 100%; font-size: 16px; }
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; }
     </style>
 </head>
 <body>
@@ -32,21 +36,28 @@
             <div class="stat-box">Play Wallet<span class="val">0.00</span></div>
             <div class="stat-box">Stake<span class="val">10</span></div>
         </div>
-        <p>ለመቁረጥ የሚፈልጉትን ቁጥር ይጫኑ</p>
+        <p style="color: #aaa; font-size: 13px;">ለመቁረጥ የሚፈልጉትን ቁጥር ይጫኑ</p>
         <div class="grid-container" id="bingoGrid"></div>
     </div>
 
     <div id="overlay"></div>
     <div id="cartela-view">
-        <h3 id="selTitle" style="margin:0;">ካርቴላ ቁጥር 1</h3>
+        <h3 id="selTitle" style="margin-bottom:10px; color: #555; font-size: 14px;"></h3>
+        
+        <div class="bingo-header">
+            <div class="bingo-letter">B</div>
+            <div class="bingo-letter">I</div>
+            <div class="bingo-letter">N</div>
+            <div class="bingo-letter">G</div>
+            <div class="bingo-letter">O</div>
+        </div>
+
         <div class="cartela-grid" id="cartelaGrid"></div>
         <button class="close-btn" onclick="closeCartela()">ተመለስ</button>
     </div>
 
     <script>
         const grid = document.getElementById('bingoGrid');
-        
-        // 100 ቁጥሮችን መፍጠር
         for (let i = 1; i <= 100; i++) {
             const btn = document.createElement('button');
             btn.className = 'num-btn';
@@ -60,27 +71,51 @@
             const cGrid = document.getElementById('cartelaGrid');
             cGrid.innerHTML = '';
             
-            // 24 የቢንጎ ቁጥሮችን ማመንጨት
-            let nums = [];
-            while(nums.length < 24) {
-                let r = Math.floor(Math.random() * 75) + 1;
-                if(!nums.includes(r)) nums.push(r);
-            }
+            // ለእያንዳንዱ ረድፍ ትክክለኛ የቢንጎ ቁጥሮችን ማመንጨት
+            let b = genRow(1, 15);
+            let i = genRow(16, 30);
+            let n_row = genRow(31, 45);
+            let g = genRow(46, 60);
+            let o = genRow(61, 75);
 
-            for(let i=0; i<25; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                if(i === 12) {
-                    cell.innerText = "FREE";
-                    cell.classList.add('free');
+            for(let row=0; row<5; row++) {
+                // B Column
+                addCell(b[row]);
+                // I Column
+                addCell(i[row]);
+                // N Column
+                if(row === 2) {
+                    const free = document.createElement('div');
+                    free.className = 'cell free';
+                    free.innerText = 'FREE';
+                    cGrid.appendChild(free);
                 } else {
-                    cell.innerText = nums.pop();
+                    addCell(n_row[row > 2 ? row-1 : row]);
                 }
-                cGrid.appendChild(cell);
+                // G Column
+                addCell(g[row]);
+                // O Column
+                addCell(o[row]);
             }
 
             document.getElementById('overlay').style.display = 'block';
             document.getElementById('cartela-view').style.display = 'block';
+        }
+
+        function genRow(min, max) {
+            let arr = [];
+            while(arr.length < 5) {
+                let r = Math.floor(Math.random() * (max - min + 1)) + min;
+                if(!arr.includes(r)) arr.push(r);
+            }
+            return arr;
+        }
+
+        function addCell(val) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.innerText = val;
+            document.getElementById('cartelaGrid').appendChild(cell);
         }
 
         function closeCartela() {
