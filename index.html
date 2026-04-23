@@ -7,85 +7,85 @@
     <style>
         body { background: #1a1a2e; color: white; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
         .header-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-        .stat-box { background: #2d2d44; padding: 10px; border-radius: 8px; font-size: 12px; }
-        .val { display: block; font-size: 16px; font-weight: bold; color: #4ecca3; }
+        .stat-box { background: #2d2d44; padding: 10px; border-radius: 8px; font-size: 11px; }
+        .val { display: block; font-size: 14px; font-weight: bold; color: #4ecca3; }
         
-        /* ቁጥሮች መምረጫ */
-        .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 12px; }
-        .num-btn { background: #3d3d5c; color: white; border: 1px solid #555; padding: 12px 0; border-radius: 6px; font-weight: bold; }
-        
-        /* የካርቴላ ዲዛይን */
-        #cartela-view { display: none; margin-top: 20px; background: #fff; color: #333; padding: 15px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .cartela-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
-        .cartela-cell { border: 1px solid #ccc; padding: 10px 0; font-weight: bold; font-size: 18px; background: #f9f9f9; }
-        .free { background: #e94560 !important; color: white; }
-        .close-btn { background: #e94560; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin-top: 15px; cursor: pointer; }
+        /* ቁጥር መምረጫ */
+        #main-ui { display: block; }
+        .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 12px; }
+        .num-btn { background: #3d3d5c; color: white; border: 1px solid #555; padding: 10px 0; border-radius: 5px; font-weight: bold; font-size: 12px; }
+
+        /* የካርቴላ ማሳያ (Popup) */
+        #cartela-view { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: #333; padding: 20px; border-radius: 15px; width: 90%; max-width: 350px; z-index: 1000; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        .cartela-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 15px; }
+        .cell { border: 1px solid #ddd; padding: 12px 0; font-size: 16px; font-weight: bold; background: #fdfdfd; border-radius: 4px; }
+        .free { background: #ff4757 !important; color: white; font-size: 10px; line-height: 20px; }
+        .close-btn { background: #1a1a2e; color: white; border: none; padding: 12px 25px; border-radius: 8px; margin-top: 20px; font-weight: bold; width: 100%; }
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; }
     </style>
 </head>
 <body>
 
     <div id="main-ui">
         <div class="header-stats">
-            <div class="stat-box">Main Wallet<span class="val">0</span></div>
-            <div class="stat-box">Play Wallet<span class="val">0</span></div>
+            <div class="stat-box">Main Wallet<span class="val">0.00</span></div>
+            <div class="stat-box">Play Wallet<span class="val">0.00</span></div>
             <div class="stat-box">Stake<span class="val">10</span></div>
         </div>
-        <h3>ቁጥር ይምረጡ</h3>
+        <p>ለመቁረጥ የሚፈልጉትን ቁጥር ይጫኑ</p>
         <div class="grid-container" id="bingoGrid"></div>
     </div>
 
+    <div id="overlay"></div>
     <div id="cartela-view">
-        <h2 style="margin:0; color:#1a1a2e;">የእርስዎ ካርቴላ</h2>
-        <p id="selected-num-text" style="font-weight:bold;"></p>
+        <h3 id="selTitle" style="margin:0;">ካርቴላ ቁጥር 1</h3>
         <div class="cartela-grid" id="cartelaGrid"></div>
         <button class="close-btn" onclick="closeCartela()">ተመለስ</button>
     </div>
 
     <script>
         const grid = document.getElementById('bingoGrid');
-        const cartelaView = document.getElementById('cartela-view');
-        const mainUI = document.getElementById('main-ui');
-
-        // 1-100 ቁጥሮችን መፍጠር
+        
+        // 100 ቁጥሮችን መፍጠር
         for (let i = 1; i <= 100; i++) {
-            const b = document.createElement('button');
-            b.className = 'num-btn';
-            b.innerText = i;
-            b.onclick = () => showCartela(i);
-            grid.appendChild(b);
+            const btn = document.createElement('button');
+            btn.className = 'num-btn';
+            btn.innerText = i;
+            btn.onclick = () => openCartela(i);
+            grid.appendChild(btn);
         }
 
-        function showCartela(num) {
-            mainUI.style.display = 'none';
-            cartelaView.style.display = 'block';
-            document.getElementById('selected-num-text').innerText = "የተመረጠው ቁጥር፦ " + num;
+        function openCartela(n) {
+            document.getElementById('selTitle').innerText = "ካርቴላ ቁጥር " + n;
+            const cGrid = document.getElementById('cartelaGrid');
+            cGrid.innerHTML = '';
             
-            const cartelaGrid = document.getElementById('cartelaGrid');
-            cartelaGrid.innerHTML = ''; // የድሮውን ማጽዳት
-
-            // 25 የካርቴላ ቁጥሮችን በዘፈቀደ መፍጠር
-            let numbers = [];
-            while(numbers.length < 24){
+            // 24 የቢንጎ ቁጥሮችን ማመንጨት
+            let nums = [];
+            while(nums.length < 24) {
                 let r = Math.floor(Math.random() * 75) + 1;
-                if(numbers.indexOf(r) === -1) numbers.push(r);
+                if(!nums.includes(r)) nums.push(r);
             }
 
-            for (let i = 0; i < 25; i++) {
+            for(let i=0; i<25; i++) {
                 const cell = document.createElement('div');
-                cell.className = 'cartela-cell';
+                cell.className = 'cell';
                 if(i === 12) {
                     cell.innerText = "FREE";
                     cell.classList.add('free');
                 } else {
-                    cell.innerText = numbers.pop();
+                    cell.innerText = nums.pop();
                 }
-                cartelaGrid.appendChild(cell);
+                cGrid.appendChild(cell);
             }
+
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('cartela-view').style.display = 'block';
         }
 
         function closeCartela() {
-            cartelaView.style.display = 'none';
-            mainUI.style.display = 'block';
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('cartela-view').style.display = 'none';
         }
     </script>
 </body>
