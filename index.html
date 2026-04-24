@@ -7,13 +7,13 @@
     <style>
         body { background: #1a1a2e; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
         .stats { display: flex; justify-content: space-around; margin-bottom: 10px; }
-        .box { background: #2d2d44; padding: 8px; border-radius: 8px; border: 1px solid #4ecca3; flex: 1; margin: 3px; font-size: 13px; }
+        .box { background: #2d2d44; padding: 8px; border-radius: 8px; border: 1px solid #4ecca3; flex: 1; margin: 3px; }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 10px; }
         .btn { background: #4ecca3; color: #1a1a2e; border: none; padding: 15px 0; border-radius: 8px; font-weight: bold; font-size: 18px; }
         #pre, #game { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; padding: 15px; box-sizing: border-box; z-index: 100; }
-        .ball { width: 75px; height: 75px; background: #4ecca3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; margin: 10px auto; color: #1a1e2e; border: 3px solid white; box-shadow: 0 0 15px #4ecca3; }
+        .ball { width: 75px; height: 75px; background: #4ecca3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin: 10px auto; color: #1a1e2e; border: 3px solid white; box-shadow: 0 0 15px #4ecca3; }
         .card-c { background: white; padding: 8px; border-radius: 12px; margin: 0 auto; max-width: 340px; }
-        .b-h { display: grid; grid-template-columns: repeat(5, 1fr); background: #2d2d44; color: #4ecca3; font-weight: bold; padding: 5px 0; border-radius: 5px; }
+        .b-h { display: grid; grid-template-columns: repeat(5, 1fr); background: #2d2d44; color: #4ecca3; font-weight: bold; padding: 5px 0; }
         .card { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 5px; }
         .cell { border: 1px solid #eee; height: 42px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; font-size: 15px; color: #333; }
         .mk { background: #4ecca3 !important; color: white; border: none; }
@@ -68,6 +68,19 @@
             document.getElementById('mG').appendChild(b);
         }
 
+        function checkW() {
+            // አግድም
+            for(let i=0; i<25; i+=5) if(mks.slice(i, i+5).every(v => v)) return true;
+            // ቁልቁል
+            for(let i=0; i<5; i++) if(.every(j => mks[i+j])) return true;
+            // መስቀለኛ
+            if(.every(i => mks[i])) return true;
+            if(.every(i => mks[i])) return true;
+            // አራቱ ማዕዘን
+            if(mks && mks && mks && mks) return true;
+            return false;
+        }
+
         function startG() {
             active = true;
             document.getElementById('pre').style.display = 'none';
@@ -89,30 +102,14 @@
                         }
                     });
 
-                    // በእያንዳንዱ ቁጥር መውጣት ወቅት አሸናፊ መኖሩን ያረጋግጣል
-                    if(checkAllWins()) {
+                    if(checkW()) {
                         active = false;
                         clearInterval(loop);
-                        setTimeout(() => { 
-                            alert("ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); 
-                            location.reload(); 
-                        }, 800);
+                        alert("ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); 
+                        location.reload(); 
                     }
                 }
             }, 3000);
-        }
-
-        function checkAllWins() {
-            // አግድም
-            for(let i=0; i<25; i+=5) if(mks.slice(i, i+5).every(v => v)) return true;
-            // ቁልቁል
-            for(let i=0; i<5; i++) if(.every(j => mks[i+j])) return true;
-            // መስቀለኛ
-            if(.every(i => mks[i])) return true;
-            if(.every(i => mks[i])) return true;
-            // አራቱ ማዕዘን
-            if(mks && mks && mks && mks) return true;
-            return false;
         }
     </script>
 </body>
