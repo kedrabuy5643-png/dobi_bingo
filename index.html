@@ -58,11 +58,16 @@
         marks = true;
         let gameActive = false;
 
-        for (let i = 1; i <= 16; i++) {
-            let b = document.createElement('button');
-            b.className = 'n-btn'; b.innerText = i;
-            b.onclick = () => startTimer(i);
-            document.getElementById('mGrid').appendChild(b);
+        // ካርቴላዎችን መፍጠር
+        function initGrid() {
+            const mGrid = document.getElementById('mGrid');
+            mGrid.innerHTML = '';
+            for (let i = 1; i <= 16; i++) {
+                let b = document.createElement('button');
+                b.className = 'n-btn'; b.innerText = i;
+                b.onclick = () => startTimer(i);
+                mGrid.appendChild(b);
+            }
         }
 
         function gn(min, max) {
@@ -78,6 +83,8 @@
             selectedId = id;
             document.getElementById('main').style.display = 'none';
             document.getElementById('pre-game').style.display = 'block';
+            document.getElementById('sel-txt').innerText = "ካርቴላ ቁጥር " + id;
+            
             let cols = [gn(1,15), gn(16,30), gn(31,45), gn(46,60), gn(61,75)];
             let h = "";
             for(let r=0; r<5; r++) {
@@ -88,6 +95,7 @@
             }
             document.getElementById('pre-board').innerHTML = h;
             document.getElementById('game-board').innerHTML = h;
+            
             let t = 30;
             let cd = setInterval(() => {
                 t--; document.getElementById('timer').innerText = t;
@@ -103,13 +111,16 @@
             let idx = 0;
             let loop = setInterval(() => {
                 if(!gameActive) { clearInterval(loop); return; }
-                let n = pool[idx];
-                document.getElementById('num-ball').innerText = (n<=15?'B':n<=30?'I':n<=45?'N':n<=60?'G':'O') + "-" + n;
-                let cells = document.querySelectorAll(`#game-board .cell`);
-                cells.forEach((cell, i) => {
-                    if(cell.innerText == n) { cell.classList.add('marked'); marks[i] = true; if(isWin()) announceWin(); }
-                });
-                idx++;
+                if(idx < 75) {
+                    let n = pool[idx];
+                    let L = n<=15?'B':n<=30?'I':n<=45?'N':n<=60?'G':'O';
+                    document.getElementById('num-ball').innerText = L + "-" + n;
+                    let cells = document.querySelectorAll(`#game-board .cell`);
+                    cells.forEach((cell, i) => {
+                        if(cell.innerText == n) { cell.classList.add('marked'); marks[i] = true; if(isWin()) announceWin(); }
+                    });
+                    idx++;
+                }
             }, 3000);
         }
 
@@ -123,6 +134,8 @@
 
         function announceWin() { gameActive = false; alert("ቢንጎ! ካርቴላ " + selectedId + " አሸንፏል!"); location.reload(); }
         function checkManualWin() { if(isWin()) announceWin(); else alert("ገና አልተሞላም!"); }
+        
+        window.onload = initGrid;
     </script>
 </body>
 </html>
