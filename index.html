@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dawi Bingo</title>
+    <title>Dawi Bingo Bot</title>
     <style>
         body { background: #1a1a2e; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
         .stats { display: flex; justify-content: space-around; margin-bottom: 15px; }
         .box { background: #2d2d44; padding: 10px; border-radius: 8px; flex: 1; margin: 5px; border: 1px solid #4ecca3; }
         .val { display: block; font-size: 16px; font-weight: bold; color: #4ecca3; }
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; }
-        .n-btn { background: #3d3d5c; color: white; border: 2px solid #4ecca3; padding: 15px 0; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; }
-        #game { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; z-index: 2000; padding: 10px; box-sizing: border-box; }
-        .ball { width: 80px; height: 80px; background: #4ecca3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; margin: 20px auto; color: #1a1a2e; border: 4px solid white; box-shadow: 0 0 20px #4ecca3; }
-        .card { background: white; color: #333; padding: 10px; border-radius: 12px; margin: 0 auto; width: 100%; max-width: 340px; }
-        .b-h { display: grid; grid-template-columns: repeat(5, 1fr); background: #2d2d44; color: #4ecca3; font-weight: bold; padding: 10px 0; border-radius: 8px 8px 0 0; }
-        .c-g { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding-top: 5px; }
-        .cell { border: 1px solid #ddd; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; font-size: 16px; background: #f9f9f9; }
-        .marked { background: #4ecca3 !important; color: white; border: none; transform: scale(1.05); }
+        .n-btn { background: #4ecca3; color: #1a1a2e; border: none; padding: 15px 0; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; }
+        #game { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; z-index: 2000; padding: 10px; }
+        .ball { width: 70px; height: 70px; background: #4ecca3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin: 15px auto; color: #1a1a2e; border: 3px solid white; }
+        .card { background: white; color: #333; padding: 10px; border-radius: 10px; margin: 0 auto; max-width: 320px; }
+        .c-g { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+        .cell { border: 1px solid #ddd; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; font-size: 14px; }
+        .marked { background: #4ecca3 !important; color: white; border: none; }
     </style>
 </head>
 <body>
@@ -28,92 +27,64 @@
             <div class="box">Stake<span class="val">10</span></div>
         </div>
         <h2 style="color: #4ecca3;">ካርቴላ ይምረጡ</h2>
-        <div class="grid" id="mGrid"></div>
+        <div class="grid" id="mGrid">
+            <button class="n-btn" onclick="st(1)">1</button>
+            <button class="n-btn" onclick="st(2)">2</button>
+            <button class="n-btn" onclick="st(3)">3</button>
+            <button class="n-btn" onclick="st(4)">4</button>
+            <button class="n-btn" onclick="st(5)">5</button>
+            <button class="n-btn" onclick="st(6)">6</button>
+            <button class="n-btn" onclick="st(7)">7</button>
+            <button class="n-btn" onclick="st(8)">8</button>
+            <button class="n-btn" onclick="st(9)">9</button>
+            <button class="n-btn" onclick="st(10)">10</button>
+            <button class="n-btn" onclick="st(11)">11</button>
+            <button class="n-btn" onclick="st(12)">12</button>
+            <button class="n-btn" onclick="st(13)">13</button>
+            <button class="n-btn" onclick="st(14)">14</button>
+            <button class="n-btn" onclick="st(15)">15</button>
+        </div>
     </div>
 
     <div id="game">
         <div id="num" class="ball">--</div>
         <div class="card">
-            <div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
             <div id="g-g" class="c-g"></div>
         </div>
-        <button onclick="checkWin()" style="width:100%; padding:18px; margin-top:25px; background:#4ecca3; border:none; border-radius:12px; font-weight:bold; font-size:20px; color:#1a1a2e;">BINGO!</button>
+        <button onclick="ck()" style="width:100%; padding:15px; margin-top:20px; background:#4ecca3; border:none; border-radius:10px; font-weight:bold; color:#1a1a2e;">BINGO!</button>
     </div>
 
     <script>
-        let sid = 0, gid = null;
-        let mks = Array(5).fill().map(() => Array(5).fill(false));
-        mks = true; 
+        let sid = 0, gid = null, mks = Array(25).fill(false);
+        mks = true;
 
-        const mGrid = document.getElementById('mGrid');
-        for (let i = 1; i <= 25; i++) {
-            let b = document.createElement('button');
-            b.className = 'n-btn';
-            b.innerText = i;
-            b.onclick = function() { start(i); };
-            mGrid.appendChild(b);
-        }
-
-        function gn(a, b) {
-            let r = [];
-            while(r.length < 5) {
-                let v = Math.floor(Math.random()*(b-a+1))+a;
-                if(!r.includes(v)) r.push(v);
-            }
-            return r;
-        }
-
-        function start(id) {
+        function st(id) {
             sid = id;
-            let cols = [gn(1,15), gn(16,30), gn(31,45), gn(46,60), gn(61,75)];
             let h = '';
-            for(let r=0; r<5; r++) {
-                for(let c=0; c<5; c++) {
-                    let v = (r==2 && c==2) ? "FREE" : cols[c][r];
-                    h += `<div class="cell ${(r==2&&c==2)?'marked':''}" id="c-${r}-${c}">${v}</div>`;
-                }
+            for(let i=0; i<25; i++) {
+                let v = (i==12) ? "FREE" : Math.floor(Math.random()*75)+1;
+                h += `<div class="cell ${i==12?'marked':''}" id="c${i}">${v}</div>`;
             }
             document.getElementById('g-g').innerHTML = h;
             document.getElementById('game').style.display = 'block';
-            playGame();
+            play();
         }
 
-        function playGame() {
-            let ns = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-            let idx = 0;
+        function play() {
             gid = setInterval(() => {
-                if(idx >= 75) { clearInterval(gid); return; }
-                let n = ns[idx];
-                let L = n<=15?'B':n<=30?'I':n<=45?'N':n<=60?'G':'O';
-                document.getElementById('num').innerText = L+"-"+n;
-                
-                document.querySelectorAll('.cell').forEach(cell => {
-                    if(cell.innerText == n.toString()) {
+                let n = Math.floor(Math.random()*75)+1;
+                document.getElementById('num').innerText = n;
+                for(let i=0; i<25; i++) {
+                    let cell = document.getElementById('c'+i);
+                    if(cell.innerText == n) {
                         cell.classList.add('marked');
-                        let idParts = cell.id.split('-');
-                        mks[parseInt(idParts)][parseInt(idParts)] = true;
+                        mks[i] = true;
                     }
-                });
-                idx++;
+                }
             }, 3000);
         }
 
-        function checkWin() {
-            let win = false;
-            for(let i=0; i<5; i++) {
-                if(mks[i].every(v => v)) win = true;
-                if(mks.map(r => r[i]).every(v => v)) win = true;
-            }
-            if(.every(i => mks[i][i]) ||.every(i => mks[i][4-i])) win = true;
-
-            if(win) {
-                clearInterval(gid);
-                alert("ቢንጎ! ካርቴላ ቁጥር " + sid + " አሸንፏል!");
-                location.reload();
-            } else {
-                alert("ገና አልሞላም፣ በትዕግስት ይጠብቁ!");
-            }
-        }
+        function ck() { alert("ካርቴላ " + sid + " ተፈትሿል!"); location.reload(); }
     </script>
 </body>
 </html>
