@@ -11,7 +11,7 @@
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 10px; }
         .btn { background: #4ecca3; color: #1a1a2e; border: none; padding: 15px 0; border-radius: 8px; font-weight: bold; font-size: 18px; }
         #pre, #game { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; padding: 15px; box-sizing: border-box; z-index: 100; }
-        .ball { width: 75px; height: 75px; background: #4ecca3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; margin: 10px auto; color: #1a1e2e; border: 3px solid white; }
+        .ball { width: 75px; height: 75px; background: #4ecca3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; margin: 10px auto; color: #1a1e2e; border: 3px solid white; box-shadow: 0 0 15px #4ecca3; }
         .card-c { background: white; padding: 8px; border-radius: 12px; margin: 0 auto; max-width: 340px; }
         .b-h { display: grid; grid-template-columns: repeat(5, 1fr); background: #2d2d44; color: #4ecca3; font-weight: bold; padding: 5px 0; border-radius: 5px; }
         .card { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 5px; }
@@ -35,11 +35,11 @@
     <div id="game">
         <div id="bl" class="ball">--</div>
         <div class="card-c"><div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="gB"></div></div>
-        <button onclick="location.reload()" style="width:100%; padding:18px; margin-top:15px; background:#4ecca3; border:none; border-radius:10px; font-weight:bold;">BINGO!</button>
+        <button onclick="location.reload()" style="width:100%; padding:18px; margin-top:15px; background:#4ecca3; border:none; border-radius:10px; font-weight:bold;">አቁም / በድጋሚ ጀምር</button>
     </div>
 
     <script>
-        let sid, mks = Array(25).fill(false), active = false;
+        let sid, mks = Array(25).fill(false), active = false, loop;
         mks = true; 
 
         const gn = (a, b) => { 
@@ -73,37 +73,45 @@
             document.getElementById('pre').style.display = 'none';
             document.getElementById('game').style.display = 'block';
             let p = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5), idx = 0;
-            let loop = setInterval(() => {
-                if(!active) { clearInterval(loop); return; }
+            
+            loop = setInterval(() => {
+                if(!active) return;
                 if(idx < 75) {
                     let n = p[idx++];
                     let L = n<=15?'B':n<=30?'I':n<=45?'N':n<=60?'G':'O';
                     document.getElementById('bl').innerText = L + "-" + n;
+                    
                     let cells = document.querySelectorAll(`#gB .cell`);
                     cells.forEach((cell, i) => {
                         if(cell.innerText == n) { 
-                            cell.classList.add('mk'); mks[i] = true; 
-                            if(checkAllWins()) { 
-                                active = false; 
-                                setTimeout(() => { alert("ቢንጎ! በሁሉም ህግ አሸንፈሃል!"); location.reload(); }, 500); 
-                            }
+                            cell.classList.add('mk'); 
+                            mks[i] = true;
                         }
                     });
+
+                    // በእያንዳንዱ ቁጥር መውጣት ወቅት አሸናፊ መኖሩን ያረጋግጣል
+                    if(checkAllWins()) {
+                        active = false;
+                        clearInterval(loop);
+                        setTimeout(() => { 
+                            alert("ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); 
+                            location.reload(); 
+                        }, 800);
+                    }
                 }
             }, 3000);
         }
 
         function checkAllWins() {
-            // 1. አግድም (Rows)
+            // አግድም
             for(let i=0; i<25; i+=5) if(mks.slice(i, i+5).every(v => v)) return true;
-            // 2. ቁልቁል (Columns)
+            // ቁልቁል
             for(let i=0; i<5; i++) if(.every(j => mks[i+j])) return true;
-            // 3. መስቀለኛ (Diagonal)
+            // መስቀለኛ
             if(.every(i => mks[i])) return true;
             if(.every(i => mks[i])) return true;
-            // 4. አራቱ ማዕዘን (Corners)
+            // አራቱ ማዕዘን
             if(mks && mks && mks && mks) return true;
-            
             return false;
         }
     </script>
