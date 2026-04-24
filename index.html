@@ -2,130 +2,94 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dawi Bingo Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dawi Bingo</title>
     <style>
-        body { background: #1a1a2e; color: white; font-family: sans-serif; margin: 0; padding: 10px; text-align: center; }
-        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-        .box { background: #2d2d44; padding: 10px; border-radius: 8px; font-size: 11px; }
-        .val { display: block; font-size: 14px; font-weight: bold; color: #4ecca3; }
-        .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; height: 350px; overflow-y: auto; }
-        .n-btn { background: #3d3d5c; color: white; border: 1px solid #555; padding: 10px 0; border-radius: 5px; }
-        
-        #game-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; padding: 10px; box-sizing: border-box; z-index: 2000; }
-        .ball { width: 80px; height: 80px; background: #4ecca3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; margin: 10px auto; color: #1a1a2e; border: 3px solid white; }
-        
+        body { background: #1a1a2e; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        .stats { display: flex; justify-content: space-around; margin-bottom: 20px; }
+        .box { background: #2d2d44; padding: 10px; border-radius: 8px; flex: 1; margin: 5px; font-size: 12px; }
+        .val { display: block; font-size: 16px; font-weight: bold; color: #4ecca3; }
+        .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; height: 350px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
+        .n-btn { background: #3d3d5c; color: white; border: 1px solid #555; padding: 10px 0; border-radius: 5px; font-weight: bold; }
+        #game { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; padding: 10px; box-sizing: border-box; }
+        .ball { width: 80px; height: 80px; background: #4ecca3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; margin: 15px auto; color: #1a1a2e; border: 4px solid white; }
         .card { background: white; color: #333; padding: 10px; border-radius: 12px; margin: 0 auto; width: 100%; max-width: 340px; }
-        .b-head { display: grid; grid-template-columns: repeat(5, 1fr); background: #2d2d44; color: #4ecca3; font-weight: bold; padding: 10px 0; border-radius: 8px 8px 0 0; }
-        .c-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding-top: 5px; }
-        .cell { border: 1px solid #eee; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; font-size: 16px; }
+        .b-h { display: grid; grid-template-columns: repeat(5, 1fr); background: #2d2d44; color: #4ecca3; font-weight: bold; padding: 10px 0; border-radius: 8px 8px 0 0; }
+        .c-g { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding-top: 5px; }
+        .cell { border: 1px solid #eee; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
         .marked { background: #4ecca3 !important; color: white; border: none; }
-        .free { background: #ff4757; color: white; font-size: 10px; }
-
-        #pop { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 15px; border-radius: 15px; width: 90%; z-index: 1001; }
-        #over { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; }
+        #pop { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 15px; width: 85%; z-index: 1000; }
+        #over { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
     </style>
 </head>
 <body>
-
     <div id="main">
         <div class="stats">
-            <div class="box">Main Wallet<span class="val">0.00</span></div>
-            <div class="box">Play Wallet<span class="val">0.00</span></div>
+            <div class="box">Main<span class="val">0.00</span></div>
+            <div class="box">Play<span class="val">0.00</span></div>
             <div class="box">Stake<span class="val">10</span></div>
         </div>
-        <div class="grid" id="mainGrid"></div>
+        <div class="grid" id="mGrid"></div>
     </div>
-
     <div id="over"></div>
     <div id="pop">
         <div id="t" style="color:red; font-weight:bold; margin-bottom:10px;">30s</div>
-        <div id="p-con"></div>
-        <button id="p-btn" onclick="act()" style="width:100%; padding:15px; margin-top:10px; background:#1a1a2e; color:white; border-radius:8px;">ተመለስ</button>
+        <div id="p-c"></div>
+        <button id="p-b" onclick="act()" style="width:100%; padding:15px; margin-top:10px; background:#1a1a2e; color:white; border-radius:8px;">ተመለስ</button>
     </div>
-
-    <div id="game-view">
-        <div id="call" class="ball">--</div>
+    <div id="game">
+        <div id="num" class="ball">--</div>
         <div class="card">
-            <div class="b-head"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
-            <div class="c-grid" id="g-grid"></div>
+            <div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
+            <div class="c-g" id="g-g"></div>
         </div>
-        <button onclick="checkWin()" style="width:100%; padding:15px; margin-top:20px; background:#4ecca3; border:none; border-radius:10px; font-weight:bold;">BINGO!</button>
+        <button onclick="check()" style="width:100%; padding:15px; margin-top:20px; background:#4ecca3; border:none; border-radius:10px; font-weight:bold;">BINGO!</button>
     </div>
-
     <script>
-        let sid = 0, time = 30, tid = null, gid = null;
-        let marks = Array(5).fill().map(() => Array(5).fill(false));
-        marks = true;
-
+        let sid = 0, tm = 30, tid = null, gid = null, mks = Array(5).fill().map(() => Array(5).fill(false));
+        mks = true;
         for (let i = 1; i <= 100; i++) {
-            let b = document.createElement('button');
-            b.className = 'n-btn'; b.innerText = i;
-            b.onclick = () => openC(i);
-            document.getElementById('mainGrid').appendChild(b);
+            let b = document.createElement('button'); b.className = 'n-btn'; b.innerText = i; b.onclick = () => openC(i);
+            document.getElementById('mGrid').appendChild(b);
         }
-
         function openC(id) {
-            sid = id;
-            let cols = [gn(1,15), gn(16,30), gn(31,45), gn(46,60), gn(61,75)];
-            let h = '<div class="c-grid">';
-            for(let r=0; r<5; r++) {
-                for(let c=0; c<5; c++) {
-                    let v = (r==2 && c==2) ? "FREE" : cols[c][r];
-                    let s = (r==2 && c==2) ? "cell free" : "cell";
-                    h += `<div class="${s}" data-r="${r}" data-c="${c}">${v}</div>`;
-                }
+            sid = id; let cols = [gn(1,15), gn(16,30), gn(31,45), gn(46,60), gn(61,75)];
+            let h = '<div class="c-g">';
+            for(let r=0; r<5; r++) for(let c=0; c<5; c++) {
+                let v = (r==2 && c==2) ? "FREE" : cols[c][r];
+                h += `<div class="cell ${(r==2&&c==2)?'marked':''}" data-r="${r}" data-c="${c}">${v}</div>`;
             }
-            document.getElementById('p-con').innerHTML = h + '</div>';
-            document.getElementById('over').style.display = 'block';
-            document.getElementById('pop').style.display = 'block';
-            time = 30;
-            tid = setInterval(() => {
-                time--; document.getElementById('t').innerText = time+"s";
-                if(time<=0) { clearInterval(tid); document.getElementById('p-btn').innerText="ወደ ጨዋታው ግባ"; }
+            document.getElementById('p-c').innerHTML = h + '</div>';
+            document.getElementById('over').style.display = 'block'; document.getElementById('pop').style.display = 'block';
+            tm = 30; tid = setInterval(() => {
+                tm--; document.getElementById('t').innerText = tm+"s";
+                if(tm<=0) { clearInterval(tid); document.getElementById('p-b').innerText="ወደ ጨዋታው ግባ"; }
             }, 1000);
         }
-
         function act() {
-            if(document.getElementById('p-btn').innerText.includes("ግባ")) {
-                document.getElementById('pop').style.display = 'none';
-                document.getElementById('game-view').style.display = 'block';
-                document.getElementById('g-grid').innerHTML = document.querySelector('#p-con .c-grid').innerHTML;
+            if(document.getElementById('p-b').innerText.includes("ግባ")) {
+                document.getElementById('pop').style.display='none'; document.getElementById('game').style.display='block';
+                document.getElementById('g-g').innerHTML = document.querySelector('#p-c .c-g').innerHTML;
                 play();
-            } else { clearInterval(tid); document.getElementById('over').style.display = 'none'; document.getElementById('pop').style.display = 'none'; }
+            } else { clearInterval(tid); document.getElementById('over').style.display='none'; document.getElementById('pop').style.display='none'; }
         }
-
         function play() {
-            let nums = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-            let i = 0;
-            gid = setInterval(() => {
-                if(i >= 75) return;
-                let n = nums[i];
-                let L = n<=15?'B':n<=30?'I':n<=45?'N':n<=60?'G':'O';
-                document.getElementById('call').innerText = L+"-"+n;
-                document.querySelectorAll('#g-grid .cell').forEach(c => {
-                    if(c.innerText == n) { 
-                        c.classList.add('marked'); 
-                        marks[c.dataset.r][c.dataset.c] = true;
-                        if(isW()) win();
-                    }
-                });
-                i++;
+            let ns = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            let i = 0; gid = setInterval(() => {
+                if(i >= 75) return; let n = ns[i];
+                document.getElementById('num').innerText = (n<=15?'B':n<=30?'I':n<=45?'N':n<=60?'G':'O')+"-"+n;
+                document.querySelectorAll('#g-g .cell').forEach(c => {
+                    if(c.innerText == n) { c.classList.add('marked'); mks[c.dataset.r][c.dataset.c] = true; if(isW()) wn(); }
+                }); i++;
             }, 3500);
         }
-
         function isW() {
-            for(let i=0; i<5; i++) {
-                if(marks[i].every(v => v)) return true;
-                if(marks.map(r => r[i]).every(v => v)) return true;
-            }
-            if(.every(i => marks[i][i])) return true;
-            if(.every(i => marks[i][4-i])) return true;
-            return (marks && marks && marks && marks);
+            for(let i=0; i<5; i++) { if(mks[i].every(v => v)) return true; if(mks.map(r => r[i]).every(v => v)) return true; }
+            if(.every(i => mks[i][i]) ||.every(i => mks[i][4-i])) return true;
+            return (mks && mks && mks && mks);
         }
-
-        function win() { clearInterval(gid); alert("ቢንጎ! ካርቴላ ቁጥር "+sid+" አሸንፏል!"); location.reload(); }
-        function checkWin() { if(isW()) win(); else alert("ገና አልሞላም!"); }
+        function wn() { clearInterval(gid); alert("ቢንጎ! ካርቴላ ቁጥር "+sid+" አሸንፏል!"); location.reload(); }
+        function check() { if(isW()) wn(); else alert("ገና አልሞላም!"); }
         function gn(a, b) { let r = []; while(r.length < 5) { let v = Math.floor(Math.random()*(b-a+1))+a; if(!r.includes(v)) r.push(v); } return r; }
     </script>
 </body>
