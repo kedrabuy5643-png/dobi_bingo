@@ -1,24 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="am">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dawi Bingo Bot</title>
+    <title>Dobi Bingo</title>
     <style>
         body { background: #1a1a2e; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
         .stats { display: flex; justify-content: space-around; margin-bottom: 20px; }
         .box { background: #2d2d44; padding: 10px; border-radius: 8px; flex: 1; margin: 5px; border: 1px solid #4ecca3; }
         .val { display: block; font-size: 16px; font-weight: bold; color: #4ecca3; }
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 10px; }
-        .n-btn { background: #4ecca3; color: #1a1a2e; border: none; padding: 20px 0; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; }
-        #game { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; padding: 20px; box-sizing: border-box; }
-        .ball { width: 80px; height: 80px; background: #4ecca3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; margin: 20px auto; color: #1a1a2e; border: 4px solid white; }
-        .card { background: white; color: #333; padding: 10px; border-radius: 10px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
-        .cell { border: 1px solid #ddd; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; font-size: 16px; }
-        .marked { background: #4ecca3 !important; color: white; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; }
+        .n-btn { background: #3d3d5c; color: white; border: 2px solid #4ecca3; padding: 15px 0; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; }
+        
+        #pre-game, #game { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a2e; z-index: 2000; padding: 15px; box-sizing: border-box; }
+        
+        .timer-circle { width: 80px; height: 80px; border: 5px solid #ff4757; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin: 20px auto; color: #ff4757; }
+        .ball { width: 80px; height: 80px; background: #4ecca3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; margin: 15px auto; color: #1a1e2e; border: 4px solid white; box-shadow: 0 0 15px #4ecca3; }
+        
+        .card { background: white; color: #333; padding: 10px; border-radius: 12px; margin: 0 auto; width: 100%; max-width: 340px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+        .cell { border: 1px solid #ddd; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; font-size: 16px; background: #f9f9f9; }
+        .marked { background: #4ecca3 !important; color: white; border: none; }
+        .wait-txt { color: #4ecca3; font-size: 18px; margin-top: 10px; }
     </style>
 </head>
 <body>
+
     <div id="main">
         <div class="stats">
             <div class="box">Main<span class="val">0.00</span></div>
@@ -29,41 +35,92 @@
         <div class="grid" id="mGrid"></div>
     </div>
 
+    <div id="pre-game">
+        <h2 id="sel-txt" style="color: #4ecca3;">ካርቴላ ቁጥር --</h2>
+        <div class="timer-circle" id="timer">30</div>
+        <p class="wait-txt">ጨዋታው ሊጀመር ነው፣ ይዘጋጁ!</p>
+        <div class="card" id="preview-board"></div>
+    </div>
+
     <div id="game">
-        <div id="num" class="ball">--</div>
-        <div class="card" id="board"></div>
-        <button onclick="location.reload()" style="width:100%; padding:15px; margin-top:30px; background:#4ecca3; border:none; border-radius:10px; font-weight:bold; font-size:18px;">BINGO!</button>
+        <div id="num-ball" class="ball">--</div>
+        <div class="card" id="game-board"></div>
+        <button onclick="checkWin()" style="width:100%; padding:18px; margin-top:25px; background:#4ecca3; border:none; border-radius:12px; font-weight:bold; font-size:20px; color:#1a1a2e;">BINGO!</button>
     </div>
 
     <script>
-        // 1. መጀመሪያ ቁጥሮቹን (1-16) በስክሪኑ ላይ እንዲወጡ እናደርጋለን
+        let selectedId = 0;
+        let gameInterval = null;
+
+        // ቁጥሮቹን መፍጠር
         const mGrid = document.getElementById('mGrid');
-        for (let i = 1; i <= 16; i++) {
+        for (let i = 1; i <= 25; i++) {
             let b = document.createElement('button');
             b.className = 'n-btn';
             b.innerText = i;
-            b.onclick = () => start(i);
+            b.onclick = () => showPreview(i);
             mGrid.appendChild(b);
         }
 
-        // 2. ቁጥር ሲነካ ጨዋታው ይጀምራል
-        function start(id) {
+        function generateNumbers() {
+            let nums = [];
+            while(nums.length < 25) {
+                let r = Math.floor(Math.random() * 75) + 1;
+                if(!nums.includes(r)) nums.push(r);
+            }
+            return nums;
+        }
+
+        function showPreview(id) {
+            selectedId = id;
             document.getElementById('main').style.display = 'none';
+            document.getElementById('pre-game').style.display = 'block';
+            document.getElementById('sel-txt').innerText = "ካርቴላ ቁጥር " + id;
+            
+            let nums = generateNumbers();
+            let boardHtml = '';
+            nums.forEach((n, i) => {
+                let val = (i === 12) ? "FREE" : n;
+                boardHtml += `<div class="cell ${i===12?'marked':''}" id="cell-${val}">${val}</div>`;
+            });
+            
+            document.getElementById('preview-board').innerHTML = boardHtml;
+            document.getElementById('game-board').innerHTML = boardHtml;
+
+            // 30 ሰከንድ መቁጠር
+            let timeLeft = 30;
+            let countdown = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft;
+                if(timeLeft <= 0) {
+                    clearInterval(countdown);
+                    startGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            document.getElementById('pre-game').style.display = 'none';
             document.getElementById('game').style.display = 'block';
             
-            let board = document.getElementById('board');
-            for(let i=0; i<25; i++) {
-                let v = (i==12) ? "FREE" : Math.floor(Math.random()*75)+1;
-                board.innerHTML += `<div class="cell ${i==12?'marked':''}" id="c${v}">${v}</div>`;
-            }
+            let allNums = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            let idx = 0;
             
-            // 3. በየ 3 ሰከንዱ አዲስ ቁጥር ማውጣት
-            setInterval(() => {
-                let n = Math.floor(Math.random()*75)+1;
-                document.getElementById('num').innerText = n;
-                let found = document.getElementById('c' + n);
-                if(found) found.classList.add('marked');
+            gameInterval = setInterval(() => {
+                if(idx >= 75) { clearInterval(gameInterval); return; }
+                let n = allNums[idx];
+                document.getElementById('num-ball').innerText = n;
+                
+                let foundCell = document.querySelector(`#game-board #cell-${n}`);
+                if(foundCell) foundCell.classList.add('marked');
+                
+                idx++;
             }, 3000);
+        }
+
+        function checkWin() {
+            alert("ካርቴላ ቁጥር " + selectedId + " ተፈትሿል!");
+            location.reload();
         }
     </script>
 </body>
