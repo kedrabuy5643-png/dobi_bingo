@@ -34,7 +34,7 @@
         <div id="bl" class="ball">--</div>
         <div class="card-c"><div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="gB"></div></div>
         <button onclick="location.reload()" style="width:100%; padding:18px; margin-top:15px; background:#4ecca3; border:none; border-radius:10px; font-weight:bold;">በድጋሚ ጀምር</button>
-    </div>    <script>
+    </div><script>
         let sid, mks = Array(25).fill(false), active = false, loop;
         mks = true; 
         const gn = (a, b) => { let r = []; while(r.length < 5) { let v = Math.floor(Math.random()*(b-a+1))+a; if(!r.includes(v)) r.push(v); } return r; };
