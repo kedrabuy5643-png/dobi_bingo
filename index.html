@@ -37,15 +37,12 @@
     </div>
     <script>
         let sid, mks = Array(25).fill(false), active = false, loop;
-        
         const gn=(a,b)=>{let r=[];while(r.length<5){let v=Math.floor(Math.random()*(b-a+1))+a;if(!r.includes(v))r.push(v)}return r};
         
         for(let i=1; i<=16; i++){
             let b=document.createElement('button'); b.className='btn'; b.innerText=i;
             b.onclick=()=>{
-                sid=i; 
-                mks = Array(25).fill(false); // Reset marks for new game
-                mks = true; // Set FREE space
+                sid=i; mks = Array(25).fill(false); mks = true;
                 document.getElementById('main').style.display='none';
                 document.getElementById('pre').style.display='block';
                 let c=[gn(1,15),gn(16,30),gn(31,45),gn(46,60),gn(61,75)], h="";
@@ -60,13 +57,9 @@
         }
 
         function checkW(){
-            // አግድም (Horizontal)
             for(let i=0; i<25; i+=5) if(mks.slice(i, i+5).every(v=>v)) return true;
-            // ቁልቁል (Vertical)
             for(let i=0; i<5; i++) if(.every(j=>mks[i+j])) return true;
-            // መስቀለኛ (Diagonal)
             if(.every(i=>mks[i]) ||.every(i=>mks[i])) return true;
-            // አራቱ ማዕዘን (Corners)
             if(mks && mks && mks && mks) return true;
             return false;
         }
@@ -79,14 +72,11 @@
                 let n=p[idx++];
                 document.getElementById('bl').innerText=n;
                 document.querySelectorAll(`#gB .cell`).forEach((c,i)=>{
-                    if(c.innerText == n.toString()){
-                        c.classList.add('mk');
-                        mks[i]=true;
-                    }
+                    if(c.innerText == n.toString()){ c.classList.add('mk'); mks[i]=true; }
                 });
                 if(checkW()){
                     active=false; clearInterval(loop);
-                    setTimeout(()=>{alert("ቢንጎ! ካርቴላ "+sid+" አሸንፏል!"); location.reload()}, 500);
+                    setTimeout(()=>{alert("ቢንጎ! አሸንፈሃል!"); location.reload()}, 500);
                 }
             }, 3000)
         }
