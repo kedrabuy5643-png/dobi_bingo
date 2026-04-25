@@ -7,16 +7,18 @@
     <style>
         body{background:#1a1a2e;color:#fff;font-family:sans-serif;text-align:center;margin:0;padding:5px}
         .stats{display:flex;justify-content:center;gap:5px;margin-bottom:10px}
-        .box{background:#2d2d44;padding:5px;border-radius:6px;border:1px solid #4ecca3;width:75px;font-size:11px}
+        .box{background:#2d2d44;padding:5px;border-radius:6px;border:1px solid #4ecca3;width:80px;font-size:12px}
         .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px}
         .btn{background:#4ecca3;color:#1a1a2e;border:none;padding:15px 0;border-radius:8px;font-weight:bold;font-size:18px}
         #pre,#game{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;padding:10px;box-sizing:border-box;z-index:100}
-        .ball{width:65px;height:65px;background:#4ecca3;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:bold;margin:10px auto;color:#1a1a2e;border:3px solid #fff}
-        .card-c{background:#fff;padding:5px;border-radius:8px;margin:0 auto;max-width:280px}
-        .b-h{display:grid;grid-template-columns:repeat(5,1fr);background:#2d2d44;color:#4ecca3;font-weight:bold;padding:5px 0}
-        .card{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin-top:3px}
-        .cell{border:1px solid #ddd;height:38px;display:flex;align-items:center;justify-content:center;font-weight:bold;border-radius:50%;font-size:13px;color:#333;background:#f9f9f9}
-        .mk{background:#4ecca3!important;color:#fff!important;border:none}
+        .ball{width:90px;height:90px;background:#4ecca3;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:24px;font-weight:bold;margin:10px auto;color:#1a1a2e;border:4px solid #fff;box-shadow:0 0 15px #4ecca3}
+        .ball span{font-size:14px;margin-bottom:-5px}
+        .card-c{background:#fff;padding:8px;border-radius:10px;margin:0 auto;max-width:320px}
+        .b-h{display:grid;grid-template-columns:repeat(5,1fr);background:#2d2d44;color:#4ecca3;font-weight:bold;padding:8px 0;border-radius:5px 5px 0 0}
+        .card{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:4px}
+        .cell{border:1px solid #eee;height:45px;display:flex;align-items:center;justify-content:center;font-weight:bold;border-radius:50%;font-size:16px;color:#333;background:#f9f9f9}
+        .mk{background:#4ecca3!important;color:#fff!important;border:none;animation:pop 0.3s ease}
+        @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
     </style>
 </head>
 <body onload="init()">
@@ -25,33 +27,36 @@
             <div class="box">Wallet<br>0.00</div>
             <div class="box">Stake<br>10</div>
         </div>
-        <h3 style="color:#4ecca3;margin:10px">ካርቴላ ይምረጡ</h3>
+        <h3 style="color:#4ecca3;margin:15px">ካርቴላ ይምረጡ</h3>
         <div class="grid" id="mG"></div>
     </div>
 
     <div id="pre">
-        <h4 id="sT" style="color:#4ecca3;margin:5px">--</h4>
-        <div style="font-size:30px;color:#ff4757;font-weight:bold" id="tm">30</div>
-        <div class="card-c"><div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="pB"></div></div>
+        <h3 id="sT" style="color:#4ecca3;margin:10px">--</h3>
+        <div style="font-size:40px;color:#ff4757;font-weight:bold;margin-bottom:10px" id="tm">30</div>
+        <div class="card-c">
+            <div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
+            <div class="card" id="pB"></div>
+        </div>
     </div>
 
     <div id="game">
-        <div id="bl" class="ball">--</div>
-        <div class="card-c"><div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="gB"></div></div>
-        <button onclick="location.reload()" style="width:100%;max-width:280px;padding:12px;margin-top:15px;background:#ff4757;color:white;border:none;border-radius:8px;font-weight:bold">አቁም</button>
+        <div id="bl" class="ball"><span>LETTER</span>--</div>
+        <div class="card-c">
+            <div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
+            <div class="card" id="gB"></div>
+        </div>
+        <button onclick="location.reload()" style="width:100%;max-width:320px;padding:15px;margin-top:20px;background:#ff4757;color:white;border:none;border-radius:8px;font-weight:bold;font-size:16px">አቁም</button>
     </div>
 
     <script>
-        let sid, mks = Array(25).fill(false), active = false;
+        let sid, mks = Array(25).fill(false), active = false, loop;
         const gn = (a, b) => { let r = []; while(r.length < 5){ let v = Math.floor(Math.random() * (b - a + 1)) + a; if(!r.includes(v)) r.push(v); } return r; };
 
-        // ይህ መስመር ነው ምርጫዎቹን የግድ የሚያመጣው
         function init() {
             const mG = document.getElementById('mG');
             let bHtml = "";
-            for(let i=1; i<=16; i++) {
-                bHtml += `<button class="btn" onclick="sel(${i})">${i}</button>`;
-            }
+            for(let i=1; i<=16; i++) bHtml += `<button class="btn" onclick="sel(${i})">${i}</button>`;
             mG.innerHTML = bHtml;
         }
 
@@ -74,18 +79,46 @@
             }, 1000);
         }
 
+        function checkW() {
+            // Horizontal, Vertical, Diagonal, and Corners check
+            const w = [,,,,,
+                      ,,,,,
+                      ,,];
+            return w.some(p => p.every(i => mks[i]));
+        }
+
+        function getL(n) {
+            if(n <= 15) return "B"; if(n <= 30) return "I"; if(n <= 45) return "N"; if(n <= 60) return "G"; return "O";
+        }
+
         function start() {
             active = true;
             document.getElementById('pre').style.display = 'none';
             document.getElementById('game').style.display = 'block';
             let nums = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5), idx = 0;
-            setInterval(() => {
+            
+            loop = setInterval(() => {
                 if(!active) return;
                 let n = nums[idx++];
-                document.getElementById('bl').innerText = n;
-                document.querySelectorAll(`#gB .cell`).forEach((c, i) => {
-                    if(c.innerText == n.toString()) { c.classList.add('mk'); mks[i] = true; }
+                let letter = getL(n);
+                document.getElementById('bl').innerHTML = `<span>${letter}</span>${n}`;
+                
+                let cells = document.querySelectorAll(`#gB .cell`);
+                cells.forEach((c, i) => {
+                    if(c.innerText == n.toString()) {
+                        c.classList.add('mk');
+                        mks[i] = true;
+                    }
                 });
+
+                if(checkW()) {
+                    active = false;
+                    clearInterval(loop);
+                    setTimeout(() => { 
+                        alert("ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); 
+                        location.reload(); 
+                    }, 800);
+                }
             }, 3000);
         }
     </script>
