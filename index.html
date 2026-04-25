@@ -61,14 +61,14 @@
         }
 
         function sel(n) {
-            sid = n; mks.fill(false); mks = true; // FREE space is marked
+            sid = n; mks.fill(false); mks = true; // FREE space mark
             document.getElementById('sT').innerText = "ካርቴላ " + n;
             document.getElementById('main').style.display = 'none';
             document.getElementById('pre').style.display = 'block';
             let cols = [gn(1,15), gn(16,30), gn(31,45), gn(46,60), gn(61,75)], h = "";
             for(let r=0; r<5; r++) for(let c=0; c<5; c++) {
                 let v = (r==2 && c==2) ? 'FREE' : cols[c][r];
-                h += `<div class="cell ${v=='FREE'?'mk':''}" id="cell-${r*5+c}">${v}</div>`;
+                h += `<div class="cell ${v=='FREE'?'mk':''}" data-idx="${r*5+c}">${v}</div>`;
             }
             document.getElementById('pB').innerHTML = h;
             document.getElementById('gB').innerHTML = h;
@@ -79,18 +79,17 @@
             }, 1000);
         }
 
-        function checkW() {
-            const w = [
+        function checkWinner() {
+            const lines = [
                ,,,,, // Horizontal
                ,,,,, // Vertical
                ,, // Diagonal
-                // Corners
+                // 4 Corners
             ];
-            return w.some(p => p.every(i => mks[i]));
-        }
-
-        function getL(n) {
-            if(n <= 15) return "B"; if(n <= 30) return "I"; if(n <= 45) return "N"; if(n <= 60) return "G"; return "O";
+            for (let line of lines) {
+                if (line.every(i => mks[i])) return true;
+            }
+            return false;
         }
 
         function start() {
@@ -102,25 +101,24 @@
             loop = setInterval(() => {
                 if(!active) return;
                 let n = nums[idx++];
-                let letter = getL(n);
+                let letter = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
                 document.getElementById('bl').innerHTML = `<span>${letter}</span>${n}`;
                 
-                let cells = document.querySelectorAll(`#gB .cell`);
-                cells.forEach((c, i) => {
-                    if(c.innerText == n.toString()) {
-                        c.classList.add('mk');
-                        mks[i] = true;
+                document.querySelectorAll(`#gB .cell`).forEach(cell => {
+                    if(cell.innerText == n.toString()) {
+                        cell.classList.add('mk');
+                        let index = parseInt(cell.getAttribute('data-idx'));
+                        mks[index] = true;
                     }
                 });
 
-                // ቢንጎ መኖሩን በእያንዳንዱ ኳስ ፍተሻ ያደርጋል
-                if(checkW()) {
+                if(checkWinner()) {
                     active = false;
                     clearInterval(loop);
                     setTimeout(() => { 
                         alert("🎉 ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); 
                         location.reload(); 
-                    }, 500);
+                    }, 600);
                 }
             }, 3000);
         }
