@@ -17,108 +17,73 @@
         .b-h{display:grid;grid-template-columns:repeat(5,1fr);background:#2d2d44;color:#4ecca3;font-weight:bold;padding:8px 0;border-radius:5px 5px 0 0}
         .card{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:4px}
         .cell{border:1px solid #eee;height:45px;display:flex;align-items:center;justify-content:center;font-weight:bold;border-radius:50%;font-size:16px;color:#333;background:#f9f9f9}
-        .mk{background:#4ecca3!important;color:#fff!important;border:none;animation:pop 0.3s ease}
-        @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+        .mk{background:#4ecca3!important;color:#fff!important;border:none}
     </style>
 </head>
 <body onload="init()">
     <div id="main">
-        <div class="stats">
-            <div class="box">Wallet<br>0.00</div>
-            <div class="box">Stake<br>10</div>
-        </div>
-        <h3 style="color:#4ecca3;margin:15px">ካርቴላ ይምረጡ</h3>
+        <div class="stats"><div class="box">Wallet<br>0.00</div><div class="box">Stake<br>10</div></div>
+        <h3 style="color:#4ecca3">ካርቴላ ይምረጡ</h3>
         <div class="grid" id="mG"></div>
     </div>
 
     <div id="pre">
-        <h3 id="sT" style="color:#4ecca3;margin:10px">--</h3>
-        <div style="font-size:40px;color:#ff4757;font-weight:bold;margin-bottom:10px" id="tm">30</div>
-        <div class="card-c">
-            <div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
-            <div class="card" id="pB"></div>
-        </div>
+        <h3 id="sT" style="color:#4ecca3">--</h3>
+        <div style="font-size:40px;color:#ff4757;font-weight:bold" id="tm">30</div>
+        <div class="card-c"><div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="pB"></div></div>
     </div>
 
     <div id="game">
         <div id="bl" class="ball"><span>LETTER</span>--</div>
-        <div class="card-c">
-            <div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
-            <div class="card" id="gB"></div>
-        </div>
-        <button onclick="location.reload()" style="width:100%;max-width:320px;padding:15px;margin-top:20px;background:#ff4757;color:white;border:none;border-radius:8px;font-weight:bold;font-size:16px">አቁም</button>
+        <div class="card-c"><div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="gB"></div></div>
+        <button onclick="location.reload()" style="width:100%;max-width:320px;padding:15px;margin-top:20px;background:#ff4757;color:white;border:none;border-radius:8px;font-weight:bold">አቁም</button>
     </div>
 
     <script>
-        let sid, mks = Array(25).fill(false), active = false, loop;
+        let sid, active = false, loop;
         const gn = (a, b) => { let r = []; while(r.length < 5){ let v = Math.floor(Math.random() * (b - a + 1)) + a; if(!r.includes(v)) r.push(v); } return r; };
 
         function init() {
-            const mG = document.getElementById('mG');
-            let bHtml = "";
-            for(let i=1; i<=16; i++) bHtml += `<button class="btn" onclick="sel(${i})">${i}</button>`;
-            mG.innerHTML = bHtml;
+            let h = ""; for(let i=1; i<=16; i++) h += `<button class="btn" onclick="sel(${i})">${i}</button>`;
+            document.getElementById('mG').innerHTML = h;
         }
 
         function sel(n) {
-            sid = n; mks.fill(false); mks = true; // FREE space mark
-            document.getElementById('sT').innerText = "ካርቴላ " + n;
-            document.getElementById('main').style.display = 'none';
-            document.getElementById('pre').style.display = 'block';
+            sid = n; document.getElementById('main').style.display='none'; document.getElementById('pre').style.display='block';
             let cols = [gn(1,15), gn(16,30), gn(31,45), gn(46,60), gn(61,75)], h = "";
             for(let r=0; r<5; r++) for(let c=0; c<5; c++) {
                 let v = (r==2 && c==2) ? 'FREE' : cols[c][r];
-                h += `<div class="cell ${v=='FREE'?'mk':''}" data-idx="${r*5+c}">${v}</div>`;
+                h += `<div class="cell ${v=='FREE'?'mk':''}" id="c-${r*5+c}">${v}</div>`;
             }
-            document.getElementById('pB').innerHTML = h;
-            document.getElementById('gB').innerHTML = h;
-            let t = 30;
-            let cd = setInterval(() => { 
-                t--; document.getElementById('tm').innerText = t;
-                if(t <= 0) { clearInterval(cd); start(); }
-            }, 1000);
+            document.getElementById('pB').innerHTML = h; document.getElementById('gB').innerHTML = h;
+            let t = 30; let cd = setInterval(() => { t--; document.getElementById('tm').innerText=t; if(t<=0){clearInterval(cd); start();} }, 1000);
         }
 
-        function checkWinner() {
-            const lines = [
-               ,,,,, // Horizontal
-               ,,,,, // Vertical
-               ,, // Diagonal
-                // 4 Corners
+        function checkBingo() {
+            const cells = document.querySelectorAll('#gB .cell');
+            const isMk = (i) => cells[i].classList.contains('mk');
+            const wins = [
+               ,,,,, // አግድም
+               ,,,,, // ቀጥታ
+               ,, // አያያዝ
+                // 4 ማዕዘን
             ];
-            for (let line of lines) {
-                if (line.every(i => mks[i])) return true;
-            }
-            return false;
+            return wins.some(w => w.every(isMk));
         }
 
         function start() {
-            active = true;
-            document.getElementById('pre').style.display = 'none';
-            document.getElementById('game').style.display = 'block';
+            active = true; document.getElementById('pre').style.display='none'; document.getElementById('game').style.display='block';
             let nums = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5), idx = 0;
-            
             loop = setInterval(() => {
                 if(!active) return;
                 let n = nums[idx++];
-                let letter = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
-                document.getElementById('bl').innerHTML = `<span>${letter}</span>${n}`;
-                
-                document.querySelectorAll(`#gB .cell`).forEach(cell => {
-                    if(cell.innerText == n.toString()) {
-                        cell.classList.add('mk');
-                        let index = parseInt(cell.getAttribute('data-idx'));
-                        mks[index] = true;
-                    }
-                });
+                let l = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
+                document.getElementById('bl').innerHTML = `<span>${l}</span>${n}`;
+                document.querySelectorAll('#gB .cell').forEach(c => { if(c.innerText == n) c.classList.add('mk'); });
 
-                if(checkWinner()) {
-                    active = false;
-                    clearInterval(loop);
-                    setTimeout(() => { 
-                        alert("🎉 ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); 
-                        location.reload(); 
-                    }, 600);
+                if(checkBingo()) {
+                    active = false; clearInterval(loop);
+                    setTimeout(() => { alert("🎉 ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); location.reload(); }, 500);
                 }
             }, 3000);
         }
