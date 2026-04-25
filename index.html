@@ -8,15 +8,19 @@
         body{background:#1a1a2e;color:#fff;font-family:sans-serif;text-align:center;margin:0;padding:10px}
         .stats{display:flex;justify-content:space-around;margin-bottom:10px}
         .box{background:#2d2d44;padding:8px;border-radius:8px;border:1px solid #4ecca3;flex:1;margin:3px}
-        .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:10px}
-        .btn{background:#4ecca3;color:#1a1a2e;border:none;padding:15px 0;border-radius:8px;font-weight:bold;font-size:18px;cursor:pointer}
+        
+        /* ምርጫዎቹ እንዲታዩ የሚያደርገው ክፍል */
+        .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:20px;max-width:400px;margin:0 auto}
+        .btn{background:#4ecca3;color:#1a1a2e;border:none;padding:15px 0;border-radius:8px;font-weight:bold;font-size:18px;cursor:pointer;transition:0.3s}
+        .btn:hover{background:#45b391;transform:scale(1.05)}
+
         #pre,#game{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;padding:15px;box-sizing:border-box;z-index:100}
-        .ball{width:70px;height:70px;background:#4ecca3;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:bold;margin:10px auto;color:#1a1a2e;border:3px solid #fff}
+        .ball{width:75px;height:75px;background:#4ecca3;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;margin:10px auto;color:#1a1a2e;border:4px solid #fff;box-shadow:0 0 15px rgba(78,204,163,0.5)}
         .card-c{background:#fff;padding:8px;border-radius:12px;margin:0 auto;max-width:320px}
-        .b-h{display:grid;grid-template-columns:repeat(5,1fr);background:#2d2d44;color:#4ecca3;font-weight:bold;padding:5px 0}
+        .b-h{display:grid;grid-template-columns:repeat(5,1fr);background:#2d2d44;color:#4ecca3;font-weight:bold;padding:8px 0;border-radius:5px 5px 0 0}
         .card{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:5px}
-        .cell{border:1px solid #eee;height:40px;display:flex;align-items:center;justify-content:center;font-weight:bold;border-radius:50%;font-size:14px;color:#333}
-        .mk{background:#4ecca3!important;color:#fff;border:none}
+        .cell{border:1px solid #ddd;height:45px;display:flex;align-items:center;justify-content:center;font-weight:bold;border-radius:50%;font-size:16px;color:#333;background:#f9f9f9}
+        .mk{background:#4ecca3!important;color:#fff!important;border:none}
     </style>
 </head>
 <body>
@@ -25,13 +29,13 @@
             <div class="box">Wallet<br>0.00</div>
             <div class="box">Stake<br>10</div>
         </div>
-        <h2 style="color:#4ecca3">ካርቴላ ይምረጡ</h2>
+        <h2 style="color:#4ecca3;margin-top:20px">ካርቴላ ይምረጡ</h2>
         <div class="grid" id="mG"></div>
     </div>
 
     <div id="pre">
         <h3 id="sT" style="color:#4ecca3">ካርቴላ --</h3>
-        <div style="font-size:40px;color:#ff4757;margin:10px" id="tm">30</div>
+        <div style="font-size:40px;color:#ff4757;margin:10px;font-weight:bold" id="tm">30</div>
         <div class="card-c">
             <div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
             <div class="card" id="pB"></div>
@@ -44,75 +48,87 @@
             <div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
             <div class="card" id="gB"></div>
         </div>
-        <button onclick="location.reload()" style="width:100%;padding:15px;margin-top:20px;background:#ff4757;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer">ጨዋታውን አቁም</button>
+        <button onclick="location.reload()" style="width:100%;max-width:320px;padding:15px;margin-top:25px;background:#ff4757;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer">ጨዋታውን አቁም</button>
     </div>
 
     <script>
         let sid, mks = Array(25).fill(false), active = false, loop;
         const gn=(a,b)=>{let r=[];while(r.length<5){let v=Math.floor(Math.random()*(b-a+1))+a;if(!r.includes(v))r.push(v)}return r};
         
-        // ካርቴላዎችን መፍጠር
+        // ምርጫዎችን መፍጠር
+        const mG = document.getElementById('mG');
         for(let i=1; i<=16; i++){
-            let b=document.createElement('button'); b.className='btn'; b.innerText=i;
-            b.onclick=()=>{
-                sid=i; 
-                mks = Array(25).fill(false); 
-                mks = true; // ለ FREE Space መለያ
+            let b = document.createElement('button');
+            b.className = 'btn';
+            b.innerText = i;
+            b.onclick = () => {
+                sid = i; 
+                mks = Array(25).fill(false);
+                mks = true; // FREE Space
                 document.getElementById('sT').innerText = "ካርቴላ " + i;
-                document.getElementById('main').style.display='none';
-                document.getElementById('pre').style.display='block';
+                document.getElementById('main').style.display = 'none';
+                document.getElementById('pre').style.display = 'block';
                 
-                let c=[gn(1,15),gn(16,30),gn(31,45),gn(46,60),gn(61,75)], h="";
-                for(let r=0;r<5;r++)for(let l=0;l<5;l++){
-                    let v=(r==2&&l==2)?'FREE':c[l][r];
-                    h+=`<div class="cell ${v=='FREE'?'mk':''}" id="n-${v}">${v}</div>`;
+                let cols = [gn(1,15), gn(16,30), gn(31,45), gn(46,60), gn(61,75)];
+                let h = "";
+                for(let r=0; r<5; r++){
+                    for(let c=0; c<5; c++){
+                        let v = (r==2 && c==2) ? 'FREE' : cols[c][r];
+                        h += `<div class="cell ${v=='FREE'?'mk':''}" id="cell-${r}-${c}">${v}</div>`;
+                    }
                 }
-                document.getElementById('pB').innerHTML=h; 
-                document.getElementById('gB').innerHTML=h;
+                document.getElementById('pB').innerHTML = h;
+                document.getElementById('gB').innerHTML = h;
                 
-                let t=30; 
-                let cd=setInterval(()=>{
-                    t--; document.getElementById('tm').innerText=t;
-                    if(t<=0){ clearInterval(cd); startG(); }
-                },1000);
+                let t = 30;
+                let cd = setInterval(() => {
+                    t--;
+                    document.getElementById('tm').innerText = t;
+                    if(t <= 0) { clearInterval(cd); startG(); }
+                }, 1000);
             };
-            document.getElementById('mG').appendChild(b);
+            mG.appendChild(b);
         }
 
         function checkW(){
-            // በጎን (Horizontal)
+            // Horizontal
             for(let i=0; i<25; i+=5) if(mks.slice(i, i+5).every(v=>v)) return true;
-            // ወደ ታች (Vertical)
+            // Vertical
             for(let i=0; i<5; i++) if(.every(j=>mks[i+j])) return true;
-            // በሰያፍ (Diagonal)
+            // Diagonal
             if(.every(i=>mks[i]) ||.every(i=>mks[i])) return true;
-            // አራት ማዕዘን (Corners)
+            // Corners
             if(mks && mks && mks && mks) return true;
             return false;
         }
 
         function startG(){
-            active=true; 
-            document.getElementById('pre').style.display='none'; 
-            document.getElementById('game').style.display='block';
-            let p=Array.from({length:75},(_,i)=>i+1).sort(()=>Math.random()-.5), idx=0;
+            active = true;
+            document.getElementById('pre').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            let p = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            let idx = 0;
             
-            loop=setInterval(()=>{
+            loop = setInterval(() => {
                 if(!active) return;
-                let n=p[idx++];
-                document.getElementById('bl').innerText=n;
+                let n = p[idx++];
+                document.getElementById('bl').innerText = n;
                 
-                // ቁጥሩን በካርቴላው ላይ መፈለግ
-                document.querySelectorAll(`#gB .cell`).forEach((c,i)=>{
-                    if(c.innerText == n.toString()){ 
-                        c.classList.add('mk'); 
-                        mks[i]=true; 
+                let cells = document.querySelectorAll(`#gB .cell`);
+                cells.forEach((cell, i) => {
+                    if(cell.innerText == n.toString()){
+                        cell.classList.add('mk');
+                        mks[i] = true;
                     }
                 });
 
                 if(checkW()){
-                    active=false; clearInterval(loop);
-                    setTimeout(()=>{ alert("ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); location.reload(); }, 500);
+                    active = false;
+                    clearInterval(loop);
+                    setTimeout(() => {
+                        alert("ቢንጎ! ካርቴላ " + sid + " አሸንፏል!");
+                        location.reload();
+                    }, 500);
                 }
             }, 3000);
         }
