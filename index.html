@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dobi Bingo - Final Line Fix</title>
+    <title>Dobi Bingo - Professional Fix</title>
     <style>
         body { background:#1a1a2e; color:#fff; font-family:sans-serif; text-align:center; margin:0; padding:10px; overflow:hidden; }
         .stats { display:flex; justify-content:center; gap:10px; margin-bottom:10px; }
@@ -12,12 +12,10 @@
         .btn { background:#4ecca3; color:#1a1a2e; border:none; padding:12px 0; border-radius:8px; font-weight:bold; font-size:16px; }
         #pre, #game { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#1a1a2e; padding:10px; box-sizing:border-box; z-index:100; }
         .ball { width:70px; height:70px; background:#4ecca3; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:22px; font-weight:bold; margin:10px auto; color:#1a1a2e; border:4px solid #fff; }
-        .ball span { font-size:12px; }
         .card-container { background:#fff; padding:5px; border-radius:12px; margin:0 auto; max-width:320px; }
         .b-header { display:grid; grid-template-columns:repeat(5, 1fr); background:#2d2d44; color:#4ecca3; font-weight:bold; padding:5px 0; border-radius:8px 8px 0 0; }
         .card { display:grid; grid-template-columns:repeat(5, 1fr); gap:3px; margin-top:4px; }
-        .cell { border:1px solid #eee; height:42px; display:flex; align-items:center; justify-content:center; font-weight:bold; border-radius:50%; font-size:14px; color:#333; background:#f9f9f9; transition: background 0.3s; }
-        /* አረንጓዴ እንዲሆን */
+        .cell { border:1px solid #eee; height:42px; display:flex; align-items:center; justify-content:center; font-weight:bold; border-radius:50%; font-size:14px; color:#333; background:#f9f9f9; }
         .marked { background:#4ecca3 !important; color:#fff !important; border:none !important; }
         .stop-btn { width:100%; max-width:320px; padding:12px; margin-top:10px; background:#ff4757; color:white; border:none; border-radius:10px; font-weight:bold; }
     </style>
@@ -32,18 +30,12 @@
     <div id="pre">
         <h3>ዝግጁ?</h3>
         <div style="font-size:40px; color:#ff4757; font-weight:bold;" id="tm">10</div>
-        <div class="card-container">
-            <div class="b-header"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
-            <div class="card" id="pB"></div>
-        </div>
+        <div class="card-container"><div class="b-header"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="pB"></div></div>
     </div>
 
     <div id="game">
         <div id="bl" class="ball"><span>-</span>-</div>
-        <div class="card-container">
-            <div class="b-header"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
-            <div class="card" id="gB"></div>
-        </div>
+        <div class="card-container"><div class="b-header"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="gB"></div></div>
         <button class="stop-btn" onclick="location.reload()">አቁም</button>
     </div>
 
@@ -63,38 +55,40 @@
             for(let r=0; r<5; r++) {
                 for(let c=0; c<5; c++) {
                     let v = (r==2 && c==2) ? 'FREE' : cols[c][r];
-                    // እያንዳንዱን ሳጥን በ row እና col መታወቂያ እንሰጠዋለን
-                    h += `<div class="cell" id="cell-${r}-${c}" data-v="${v}">${v}</div>`;
+                    // እያንዳንዱ ሳጥን የራሱ የሆነ Coordinate (ረድፍ እና አምድ) ተሰጥቶታል
+                    h += `<div class="cell" id="gB-cell-${r}-${c}" data-v="${v}">${v}</div>`;
                 }
             }
-            document.getElementById('pB').innerHTML = h;
+            document.getElementById('pB').innerHTML = h.replace(/gB-cell/g, 'pB-cell');
             document.getElementById('gB').innerHTML = h;
             
-            document.querySelectorAll('[data-v="FREE"]').forEach(el => el.classList.add('marked'));
+            // FREE የሚለውን ምልክት አድርግ
+            const free = document.getElementById('gB-cell-2-2');
+            if(free) free.classList.add('marked');
             
             let t = 10;
             let cd = setInterval(() => { t--; document.getElementById('tm').innerText=t; if(t<=0){clearInterval(cd); start();} }, 1000);
         }
 
-        function checkWinner() {
-            const getM = (r, c) => document.getElementById(`cell-${r}-${c}`).classList.contains('marked');
+        function checkBingo() {
+            const isM = (r, c) => document.getElementById(`gB-cell-${r}-${c}`).classList.contains('marked');
 
-            // 1. አግድም መፈተሻ (Rows)
+            // 1. አግድም (Rows)
             for (let r = 0; r < 5; r++) {
-                if (getM(r,0) && getM(r,1) && getM(r,2) && getM(r,3) && getM(r,4)) return true;
+                if (isM(r,0) && isM(r,1) && isM(r,2) && isM(r,3) && isM(r,4)) return true;
             }
 
-            // 2. ቁልቁል መፈተሻ (Columns)
+            // 2. ቁልቁል (Columns)
             for (let c = 0; c < 5; c++) {
-                if (getM(0,c) && getM(1,c) && getM(2,c) && getM(3,c) && getM(4,c)) return true;
+                if (isM(0,c) && isM(1,c) && isM(2,c) && isM(3,c) && isM(4,c)) return true;
             }
 
             // 3. ሰያፍ (Diagonals)
-            if (getM(0,0) && getM(1,1) && getM(2,2) && getM(3,3) && getM(4,4)) return true;
-            if (getM(0,4) && getM(1,3) && getM(2,2) && getM(3,1) && getM(4,0)) return true;
+            if (isM(0,0) && isM(1,1) && isM(2,2) && isM(3,3) && isM(4,4)) return true;
+            if (isM(0,4) && isM(1,3) && isM(2,2) && isM(3,1) && isM(4,0)) return true;
 
             // 4. አራት ማዕዘን (Corners)
-            if (getM(0,0) && getM(0,4) && getM(4,0) && getM(4,4)) return true;
+            if (isM(0,0) && isM(0,4) && isM(4,0) && isM(4,4)) return true;
 
             return false;
         }
@@ -118,10 +112,13 @@
                     }
                 });
 
-                if(checkWinner()) {
+                if(checkBingo()) {
                     active = false;
                     clearInterval(loop);
-                    setTimeout(() => { alert("🎉 ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); location.reload(); }, 500);
+                    setTimeout(() => { 
+                        alert("🎉 ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); 
+                        location.reload(); 
+                    }, 500);
                 }
             }, 2500);
         }
