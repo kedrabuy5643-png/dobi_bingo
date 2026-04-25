@@ -57,9 +57,13 @@
         }
 
         function checkW(){
+            // Horizontal
             for(let i=0; i<25; i+=5) if(mks.slice(i, i+5).every(v=>v)) return true;
+            // Vertical
             for(let i=0; i<5; i++) if(.every(j=>mks[i+j])) return true;
+            // Diagonal
             if(.every(i=>mks[i]) ||.every(i=>mks[i])) return true;
+            // Corners
             if(mks && mks && mks && mks) return true;
             return false;
         }
@@ -76,7 +80,7 @@
                 });
                 if(checkW()){
                     active=false; clearInterval(loop);
-                    setTimeout(()=>{alert("ቢንጎ! አሸንፈሃል!"); location.reload()}, 500);
+                    setTimeout(()=>{alert("ቢንጎ! ካርቴላ "+sid+" አሸንፏል!"); location.reload()}, 500);
                 }
             }, 3000)
         }
