@@ -3,21 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dobi Bingo - Professional Fix</title>
+    <title>Dobi Bingo - Auto Restart Edition</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         body { background:#1a1a2e; color:#fff; font-family:sans-serif; text-align:center; margin:0; padding:10px; overflow:hidden; }
         .stats { display:flex; justify-content:center; gap:10px; margin-bottom:10px; }
         .box { background:#2d2d44; padding:8px; border-radius:8px; border:1px solid #4ecca3; flex:1; font-size:12px; }
         .grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; padding:10px; }
-        .btn { background:#4ecca3; color:#1a1a2e; border:none; padding:12px 0; border-radius:8px; font-weight:bold; font-size:16px; }
-        #pre, #game { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#1a1a2e; padding:10px; box-sizing:border-box; z-index:100; }
-        .ball { width:70px; height:70px; background:#4ecca3; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:22px; font-weight:bold; margin:10px auto; color:#1a1a2e; border:4px solid #fff; }
+        .btn { background:#4ecca3; color:#1a1a2e; border:none; padding:12px 0; border-radius:8px; font-weight:bold; font-size:16px; transition: 0.2s; }
+        .btn:disabled { background: #555; color: #888; }
+        
+        #pre, #game, #win-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#1a1a2e; padding:10px; box-sizing:border-box; z-index:100; }
+        #win-overlay { background:rgba(26, 26, 46, 0.95); z-index:200; flex-direction:column; align-items:center; justify-content:center; display:none; }
+        
+        .ball { width:70px; height:70px; background:#4ecca3; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:22px; font-weight:bold; margin:10px auto; color:#1a1a2e; border:4px solid #fff; box-shadow:0 0 15px #4ecca3; }
         .card-container { background:#fff; padding:5px; border-radius:12px; margin:0 auto; max-width:320px; }
         .b-header { display:grid; grid-template-columns:repeat(5, 1fr); background:#2d2d44; color:#4ecca3; font-weight:bold; padding:5px 0; border-radius:8px 8px 0 0; }
         .card { display:grid; grid-template-columns:repeat(5, 1fr); gap:3px; margin-top:4px; }
         .cell { border:1px solid #eee; height:42px; display:flex; align-items:center; justify-content:center; font-weight:bold; border-radius:50%; font-size:14px; color:#333; background:#f9f9f9; }
         .marked { background:#4ecca3 !important; color:#fff !important; border:none !important; }
-        .stop-btn { width:100%; max-width:320px; padding:12px; margin-top:10px; background:#ff4757; color:white; border:none; border-radius:10px; font-weight:bold; }
+        
+        .big-btn { width:80%; max-width:250px; padding:15px; margin:10px; border:none; border-radius:10px; font-weight:bold; font-size:18px; cursor:pointer; }
+        .restart-btn { background:#4ecca3; color:#1a1a2e; }
+        
+        #auto-restart-text { font-size: 14px; color: #ff4757; margin-top: 10px; }
     </style>
 </head>
 <body onload="init()">
@@ -27,70 +36,96 @@
         <div class="grid" id="mG"></div>
     </div>
 
+    <div id="win-overlay">
+        <h1 style="color:#4ecca3; font-size:50px; margin:0;">BINGO!</h1>
+        <h3 id="win-msg" style="margin:10px 0;">ካርቴላ ቁጥር -- አሸንፏል!</h3>
+        <div id="auto-restart-text">ጨዋታው በራሱ በአዲስ ይጀምራል...</div>
+        <button class="big-btn restart-btn" onclick="resetToSelection()">አሁኑኑ አዲስ ጀምር</button>
+    </div>
+
     <div id="pre">
-        <h3>ዝግጁ?</h3>
-        <div style="font-size:40px; color:#ff4757; font-weight:bold;" id="tm">10</div>
+        <h3 id="pre-title">ቀጣይ ጨዋታ ለመጀመር...</h3>
+        <div style="font-size:45px; color:#ff4757; font-weight:bold;" id="tm">15</div>
         <div class="card-container"><div class="b-header"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="pB"></div></div>
     </div>
 
     <div id="game">
         <div id="bl" class="ball"><span>-</span>-</div>
         <div class="card-container"><div class="b-header"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="gB"></div></div>
-        <button class="stop-btn" onclick="location.reload()">አቁም</button>
+        <button onclick="resetToSelection()" style="width:100%; max-width:320px; padding:12px; margin-top:15px; background:#ff4757; color:white; border:none; border-radius:10px; font-weight:bold;">አቁም</button>
     </div>
 
     <script>
-        let sid, active = false, loop;
+        let sid, active = false, loop, timerInterval;
         const gn = (a, b) => { let r = []; while(r.length < 5){ let v = Math.floor(Math.random()*(b-a+1))+a; if(!r.includes(v)) r.push(v); } return r; };
 
         function init() {
+            document.getElementById('main').style.display = 'block';
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('win-overlay').style.display = 'none';
             let h = ""; for(let i=1; i<=16; i++) h += `<button class="btn" onclick="sel(${i})">${i}</button>`;
             document.getElementById('mG').innerHTML = h;
         }
 
         function sel(n) {
-            sid = n; document.getElementById('main').style.display='none'; document.getElementById('pre').style.display='block';
+            sid = n;
+            document.getElementById('main').style.display='none';
+            document.getElementById('pre').style.display='block';
             let cols = [gn(1,15), gn(16,30), gn(31,45), gn(46,60), gn(61,75)];
             let h = "";
-            for(let r=0; r<5; r++) {
-                for(let c=0; c<5; c++) {
-                    let v = (r==2 && c==2) ? 'FREE' : cols[c][r];
-                    // እያንዳንዱ ሳጥን የራሱ የሆነ Coordinate (ረድፍ እና አምድ) ተሰጥቶታል
-                    h += `<div class="cell" id="gB-cell-${r}-${c}" data-v="${v}">${v}</div>`;
-                }
+            for(let r=0; r<5; r++) for(let c=0; c<5; c++) {
+                let v = (r==2 && c==2) ? 'FREE' : cols[c][r];
+                h += `<div class="cell" id="gB-cell-${r}-${c}" data-v="${v}">${v}</div>`;
             }
             document.getElementById('pB').innerHTML = h.replace(/gB-cell/g, 'pB-cell');
             document.getElementById('gB').innerHTML = h;
-            
-            // FREE የሚለውን ምልክት አድርግ
-            const free = document.getElementById('gB-cell-2-2');
-            if(free) free.classList.add('marked');
-            
-            let t = 10;
-            let cd = setInterval(() => { t--; document.getElementById('tm').innerText=t; if(t<=0){clearInterval(cd); start();} }, 1000);
+            document.getElementById('gB-cell-2-2').classList.add('marked');
+
+            let t = 15;
+            document.getElementById('tm').innerText = t;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                t--;
+                document.getElementById('tm').innerText = t;
+                if(t <= 0) { clearInterval(timerInterval); start(); }
+            }, 1000);
         }
 
         function checkBingo() {
             const isM = (r, c) => document.getElementById(`gB-cell-${r}-${c}`).classList.contains('marked');
-
-            // 1. አግድም (Rows)
-            for (let r = 0; r < 5; r++) {
-                if (isM(r,0) && isM(r,1) && isM(r,2) && isM(r,3) && isM(r,4)) return true;
-            }
-
-            // 2. ቁልቁል (Columns)
-            for (let c = 0; c < 5; c++) {
-                if (isM(0,c) && isM(1,c) && isM(2,c) && isM(3,c) && isM(4,c)) return true;
-            }
-
-            // 3. ሰያፍ (Diagonals)
+            for (let r = 0; r < 5; r++) if (isM(r,0) && isM(r,1) && isM(r,2) && isM(r,3) && isM(r,4)) return true;
+            for (let c = 0; c < 5; c++) if (isM(0,c) && isM(1,c) && isM(2,c) && isM(3,c) && isM(4,c)) return true;
             if (isM(0,0) && isM(1,1) && isM(2,2) && isM(3,3) && isM(4,4)) return true;
             if (isM(0,4) && isM(1,3) && isM(2,2) && isM(3,1) && isM(4,0)) return true;
-
-            // 4. አራት ማዕዘን (Corners)
             if (isM(0,0) && isM(0,4) && isM(4,0) && isM(4,4)) return true;
-
             return false;
+        }
+
+        function celebrate() {
+            active = false;
+            clearInterval(loop);
+            document.getElementById('win-overlay').style.display = 'flex';
+            document.getElementById('win-msg').innerText = "ካርቴላ ቁጥር " + sid + " አሸንፏል!";
+            
+            // ኮንፌቲ
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+
+            // ከ 5 ሰከንድ በኋላ በራሱ ወደ ምርጫ እንዲመለስ
+            setTimeout(() => {
+                if(document.getElementById('win-overlay').style.display === 'flex') {
+                    resetToSelection();
+                }
+            }, 5000);
+        }
+
+        function resetToSelection() {
+            active = false;
+            clearInterval(loop);
+            clearInterval(timerInterval);
+            document.getElementById('win-overlay').style.display = 'none';
+            document.getElementById('pre').style.display = 'none';
+            document.getElementById('game').style.display = 'none';
+            init(); // ወደ መጀመሪያው ገጽ ይመልሰዋል
         }
 
         function start() {
@@ -105,22 +140,14 @@
                 let n = nums[idx++];
                 let l = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
                 document.getElementById('bl').innerHTML = `<span>${l}</span>${n}`;
-
                 document.querySelectorAll('#gB .cell').forEach(c => {
-                    if(c.getAttribute('data-v') == n.toString()) {
-                        c.classList.add('marked');
-                    }
+                    if(c.getAttribute('data-v') == n.toString()) c.classList.add('marked');
                 });
 
                 if(checkBingo()) {
-                    active = false;
-                    clearInterval(loop);
-                    setTimeout(() => { 
-                        alert("🎉 ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); 
-                        location.reload(); 
-                    }, 500);
+                    celebrate();
                 }
-            }, 2500);
+            }, 2000);
         }
     </script>
 </body>
