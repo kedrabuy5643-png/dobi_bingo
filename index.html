@@ -1,19 +1,95 @@
-function generateBingoNumbers() {
-    let numbers = [];
-    // ከ1 እስከ 100 ያሉ ቁጥሮችን በቅደም ተከተል መሙላት
-    for (let i = 1; i <= 100; i++) {
-        numbers.push(i);
-    }
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dobi Bingo</title>
+    <style>
+        body{background:#1a1a2e;color:#fff;font-family:sans-serif;text-align:center;margin:0;padding:10px}
+        .stats{display:flex;justify-content:space-around;margin-bottom:10px}
+        .box{background:#2d2d44;padding:8px;border-radius:8px;border:1px solid #4ecca3;flex:1;margin:3px}
+        .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:10px}
+        .btn{background:#4ecca3;color:#1a1a2e;border:none;padding:15px 0;border-radius:8px;font-weight:bold;font-size:18px}
+        #pre,#game{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;padding:15px;box-sizing:border-box}
+        .ball{width:70px;height:70px;background:#4ecca3;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:bold;margin:10px auto;color:#1a1e2e;border:3px solid #fff}
+        .card-c{background:#fff;padding:8px;border-radius:12px;margin:0 auto;max-width:320px}
+        .b-h{display:grid;grid-template-columns:repeat(5,1fr);background:#2d2d44;color:#4ecca3;font-weight:bold;padding:5px 0}
+        .card{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:5px}
+        .cell{border:1px solid #eee;height:40px;display:flex;align-items:center;justify-content:center;font-weight:bold;border-radius:50%;font-size:14px;color:#333}
+        .mk{background:#4ecca3!important;color:#fff;border:none}
+    </style>
+</head>
+<body>
+    <div id="main">
+        <div class="stats"><div class="box">Wallet<br>0.00</div><div class="box">Stake<br>10</div></div>
+        <h2 style="color:#4ecca3">Dobi Bingo</h2>
+        <div class="grid" id="mG"></div>
+    </div>
+    <div id="pre">
+        <h3 id="sT" style="color:#4ecca3">ካርቴላ --</h3>
+        <div style="font-size:40px;color:#ff4757;margin:10px" id="tm">30</div>
+        <div class="card-c"><div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="pB"></div></div>
+    </div>
+    <div id="game">
+        <div id="bl" class="ball">--</div>
+        <div class="card-c"><div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="gB"></div></div>
+        <button onclick="location.reload()" style="width:100%;padding:15px;margin-top:15px;background:#4ecca3;border:none;border-radius:8px;font-weight:bold">ድጋሚ ጀምር</button>
+    </div>
+    <script>
+        let sid, mks = Array(25).fill(false), active = false, loop;
+        
+        const gn=(a,b)=>{let r=[];while(r.length<5){let v=Math.floor(Math.random()*(b-a+1))+a;if(!r.includes(v))r.push(v)}return r};
+        
+        for(let i=1; i<=16; i++){
+            let b=document.createElement('button'); b.className='btn'; b.innerText=i;
+            b.onclick=()=>{
+                sid=i; 
+                mks = Array(25).fill(false); // Reset marks for new game
+                mks = true; // Set FREE space
+                document.getElementById('main').style.display='none';
+                document.getElementById('pre').style.display='block';
+                let c=[gn(1,15),gn(16,30),gn(31,45),gn(46,60),gn(61,75)], h="";
+                for(let r=0;r<5;r++)for(let l=0;l<5;l++){
+                    let v=(r==2&&l==2)?'FREE':c[l][r];
+                    h+=`<div class="cell ${v=='FREE'?'mk':''}" id="n-${v}">${v}</div>`
+                }
+                document.getElementById('pB').innerHTML=h; document.getElementById('gB').innerHTML=h;
+                let t=30; let cd=setInterval(()=>{t--;document.getElementById('tm').innerText=t;if(t<=0){clearInterval(cd);startG()}},1000)
+            };
+            document.getElementById('mG').appendChild(b)
+        }
 
-    // ቁጥሮቹን በዘፈቀደ ማቀላቀል (Shuffle)
-    for (let i = numbers.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
-    }
+        function checkW(){
+            // አግድም (Horizontal)
+            for(let i=0; i<25; i+=5) if(mks.slice(i, i+5).every(v=>v)) return true;
+            // ቁልቁል (Vertical)
+            for(let i=0; i<5; i++) if(.every(j=>mks[i+j])) return true;
+            // መስቀለኛ (Diagonal)
+            if(.every(i=>mks[i]) ||.every(i=>mks[i])) return true;
+            // አራቱ ማዕዘን (Corners)
+            if(mks && mks && mks && mks) return true;
+            return false;
+        }
 
-    return numbers;
-}
-
-// ቁጥሮቹን ለማመንጨት
-const bingoCardNumbers = generateBingoNumbers();
-console.log(bingoCardNumbers);
+        function startG(){
+            active=true; document.getElementById('pre').style.display='none'; document.getElementById('game').style.display='block';
+            let p=Array.from({length:75},(_,i)=>i+1).sort(()=>Math.random()-.5), idx=0;
+            loop=setInterval(()=>{
+                if(!active) return;
+                let n=p[idx++];
+                document.getElementById('bl').innerText=n;
+                document.querySelectorAll(`#gB .cell`).forEach((c,i)=>{
+                    if(c.innerText == n.toString()){
+                        c.classList.add('mk');
+                        mks[i]=true;
+                    }
+                });
+                if(checkW()){
+                    active=false; clearInterval(loop);
+                    setTimeout(()=>{alert("ቢንጎ! ካርቴላ "+sid+" አሸንፏል!"); location.reload()}, 500);
+                }
+            }, 3000)
+        }
+    </script>
+</body>
+</html>
