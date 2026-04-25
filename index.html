@@ -5,28 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dobi Bingo</title>
     <style>
-        body{background:#1a1a2e;color:#fff;font-family:sans-serif;text-align:center;margin:0;padding:10px;overflow-x:hidden}
-        .stats{display:flex;justify-content:space-around;margin-bottom:10px}
-        .box{background:#2d2d44;padding:8px;border-radius:8px;border:1px solid #4ecca3;flex:1;margin:3px;font-size:14px}
+        /* ለሞባይል እንዲመጥን መጠኖችን ቀንሻለሁ */
+        body{background:#1a1a2e;color:#fff;font-family:sans-serif;text-align:center;margin:0;padding:5px;overflow:hidden}
+        .stats{display:flex;justify-content:center;gap:5px;margin-top:5px}
+        .box{background:#2d2d44;padding:5px;border-radius:6px;border:1px solid #4ecca3;width:80px;font-size:12px}
         
-        /* ለሞባይል ምርጫዎች አመቺ እንዲሆን */
-        .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:15px;max-width:400px;margin:15px auto}
-        .btn{background:#4ecca3;color:#1a1a2e;border:none;padding:20px 0;border-radius:10px;font-weight:bold;font-size:22px;cursor:pointer;box-shadow:0 4px 6px rgba(0,0,0,0.3);-webkit-tap-highlight-color:transparent}
-        .btn:active{transform:scale(0.92);background:#45b391}
+        /* ምርጫዎቹ እንዲታዩ Grid ማስተካከያ */
+        .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px;margin-top:10px}
+        .btn{background:#4ecca3;color:#1a1a2e;border:none;padding:15px 0;border-radius:8px;font-weight:bold;font-size:18px}
 
-        #pre,#game{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;padding:15px;box-sizing:border-box;z-index:100;overflow-y:auto}
-        .ball{width:85px;height:85px;background:#4ecca3;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:bold;margin:15px auto;color:#1a1a2e;border:4px solid #fff;box-shadow:0 0 20px rgba(78,204,163,0.4)}
-        .card-c{background:#fff;padding:10px;border-radius:12px;margin:0 auto;max-width:340px;box-shadow:0 10px 25px rgba(0,0,0,0.5)}
-        .b-h{display:grid;grid-template-columns:repeat(5,1fr);background:#2d2d44;color:#4ecca3;font-weight:bold;padding:10px 0;border-radius:6px 6px 0 0;font-size:18px}
-        .card{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:5px}
-        .cell{border:1px solid #ddd;height:48px;display:flex;align-items:center;justify-content:center;font-weight:bold;border-radius:50%;font-size:17px;color:#333;background:#f8f8f8}
-        .mk{background:#4ecca3!important;color:#fff!important;border:none;animation:pop 0.3s ease}
-        
-        @keyframes pop {
-            0% {transform:scale(1)}
-            50% {transform:scale(1.2)}
-            100% {transform:scale(1)}
-        }
+        #pre,#game{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;padding:10px;box-sizing:border-box;z-index:100}
+        .ball{width:70px;height:70px;background:#4ecca3;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;margin:10px auto;color:#1a1a2e;border:3px solid #fff}
+        .card-c{background:#fff;padding:5px;border-radius:10px;margin:0 auto;max-width:300px}
+        .b-h{display:grid;grid-template-columns:repeat(5,1fr);background:#2d2d44;color:#4ecca3;font-weight:bold;padding:5px 0}
+        .card{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:3px}
+        .cell{border:1px solid #ddd;height:40px;display:flex;align-items:center;justify-content:center;font-weight:bold;border-radius:50%;font-size:14px;color:#333;background:#f9f9f9}
+        .mk{background:#4ecca3!important;color:#fff!important;border:none}
     </style>
 </head>
 <body>
@@ -35,13 +29,13 @@
             <div class="box">Wallet<br>0.00</div>
             <div class="box">Stake<br>10</div>
         </div>
-        <h2 style="color:#4ecca3;margin:20px 0">ካርቴላ ይምረጡ</h2>
+        <h3 style="color:#4ecca3;margin:10px">ካርቴላ ይምረጡ</h3>
         <div class="grid" id="mG"></div>
     </div>
 
     <div id="pre">
-        <h3 id="sT" style="color:#4ecca3;font-size:24px">ካርቴላ --</h3>
-        <div style="font-size:55px;color:#ff4757;margin:15px;font-weight:bold" id="tm">30</div>
+        <h4 id="sT" style="color:#4ecca3;margin:5px">ካርቴላ --</h4>
+        <div style="font-size:35px;color:#ff4757;font-weight:bold" id="tm">30</div>
         <div class="card-c">
             <div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
             <div class="card" id="pB"></div>
@@ -54,7 +48,7 @@
             <div class="b-h"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
             <div class="card" id="gB"></div>
         </div>
-        <button onclick="location.reload()" style="width:100%;max-width:340px;padding:18px;margin:25px auto;display:block;background:#ff4757;color:white;border:none;border-radius:10px;font-weight:bold;font-size:18px;cursor:pointer">ጨዋታውን አቁም</button>
+        <button onclick="location.reload()" style="width:100%;max-width:300px;padding:12px;margin-top:15px;background:#ff4757;color:white;border:none;border-radius:8px;font-weight:bold">ጨዋታውን አቁም</button>
     </div>
 
     <script>
@@ -69,23 +63,20 @@
             return r;
         };
 
-        // 1. መተግበሪያውን ወዲያውኑ እንዲጀምር የሚያደርግ (ለሞባይል የተስተካከለ)
-        document.addEventListener('DOMContentLoaded', () => {
+        // ይህ ፈንክሽን በግዳጅ ምርጫዎቹን እንዲሰራ ያደርገዋል
+        function createButtons() {
             const mG = document.getElementById('mG');
-            mG.innerHTML = ""; 
+            let btns = "";
             for(let i=1; i<=16; i++){
-                let b = document.createElement('button');
-                b.className = 'btn';
-                b.innerText = i;
-                b.onclick = () => selectCard(i);
-                mG.appendChild(b);
+                btns += `<button class="btn" onclick="selectCard(${i})">${i}</button>`;
             }
-        });
+            mG.innerHTML = btns;
+        }
 
         function selectCard(num) {
             sid = num;
             mks = Array(25).fill(false);
-            mks = true; // FREE Space
+            mks = true;
             document.getElementById('sT').innerText = "ካርቴላ " + num;
             document.getElementById('main').style.display = 'none';
             document.getElementById('pre').style.display = 'block';
@@ -140,13 +131,13 @@
                 if(checkW()){
                     active = false;
                     clearInterval(loop);
-                    setTimeout(() => {
-                        alert("ቢንጎ! ካርቴላ " + sid + " አሸንፏል!");
-                        location.reload();
-                    }, 500);
+                    setTimeout(() => { alert("ቢንጎ! አሸንፈሃል!"); location.reload(); }, 500);
                 }
             }, 3000);
         }
+
+        // ወዲያውኑ ምርጫዎቹን እንዲፈጥር መጥራት
+        createButtons();
     </script>
 </body>
 </html>
