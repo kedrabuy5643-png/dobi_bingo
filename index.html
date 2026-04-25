@@ -3,27 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dobi Bingo Final Fix</title>
+    <title>Dobi Bingo - Line Bingo Fix</title>
     <style>
         body { background:#1a1a2e; color:#fff; font-family:sans-serif; text-align:center; margin:0; padding:10px; overflow:hidden; }
         .stats { display:flex; justify-content:center; gap:10px; margin-bottom:10px; }
         .box { background:#2d2d44; padding:8px; border-radius:8px; border:1px solid #4ecca3; flex:1; font-size:12px; }
         .grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; padding:10px; }
         .btn { background:#4ecca3; color:#1a1a2e; border:none; padding:12px 0; border-radius:8px; font-weight:bold; font-size:16px; }
-        
         #pre, #game { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#1a1a2e; padding:10px; box-sizing:border-box; z-index:100; }
-        
         .ball { width:70px; height:70px; background:#4ecca3; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:22px; font-weight:bold; margin:10px auto; color:#1a1a2e; border:4px solid #fff; }
         .ball span { font-size:12px; }
-        
         .card-container { background:#fff; padding:5px; border-radius:12px; margin:0 auto; max-width:320px; }
         .b-header { display:grid; grid-template-columns:repeat(5, 1fr); background:#2d2d44; color:#4ecca3; font-weight:bold; padding:5px 0; border-radius:8px 8px 0 0; }
         .card { display:grid; grid-template-columns:repeat(5, 1fr); gap:3px; margin-top:4px; }
         .cell { border:1px solid #eee; height:42px; display:flex; align-items:center; justify-content:center; font-weight:bold; border-radius:50%; font-size:14px; color:#333; background:#f9f9f9; }
-        
-        /* ቁጥሩ ሲገኝ የሚሆንበት ቀለም */
-        .marked { background:#4ecca3 !important; color:#fff !important; border:none !important; }
-        
+        .marked { background:#4ecca3 !important; color:#fff !important; border:none !important; animation: pop 0.3s ease; }
+        @keyframes pop { 0% {transform: scale(1);} 50% {transform: scale(1.2);} 100% {transform: scale(1);} }
         .stop-btn { width:100%; max-width:320px; padding:12px; margin-top:10px; background:#ff4757; color:white; border:none; border-radius:10px; font-weight:bold; }
     </style>
 </head>
@@ -35,7 +30,7 @@
     </div>
 
     <div id="pre">
-        <h3 id="status">ዝግጁ?</h3>
+        <h3>ዝግጁ?</h3>
         <div style="font-size:40px; color:#ff4757; font-weight:bold;" id="tm">10</div>
         <div class="card-container">
             <div class="b-header"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
@@ -53,7 +48,7 @@
     </div>
 
     <script>
-        let sid, active = false, loop, drawn = [];
+        let sid, active = false, loop;
         const gn = (a, b) => { let r = []; while(r.length < 5){ let v = Math.floor(Math.random()*(b-a+1))+a; if(!r.includes(v)) r.push(v); } return r; };
 
         function init() {
@@ -71,35 +66,39 @@
             }
             document.getElementById('pB').innerHTML = h;
             document.getElementById('gB').innerHTML = h;
-            // FREE የሚለውን ወዲያውኑ ማርክ አድርግ
             document.querySelectorAll('[data-v="FREE"]').forEach(el => el.classList.add('marked'));
             
             let t = 10;
             let cd = setInterval(() => { t--; document.getElementById('tm').innerText=t; if(t<=0){clearInterval(cd); start();} }, 1000);
         }
 
-        function checkWin() {
-            const cells = Array.from(document.querySelectorAll('#gB .cell'));
+        function checkBingo() {
+            const cells = document.querySelectorAll('#gB .cell');
             const isM = (i) => cells[i].classList.contains('marked');
-            
-            const wins = [
-               ,,,,, // Horizontal
-               ,,,,, // Vertical
-               , // Diagonal
+
+            const winPatterns = [
+                // አግድም (Rows)
+               ,,,,,
+                // ቁልቁል (Columns)
+               ,,,,,
+                // ዲያጎናል (Diagonals)
+               ,,
+                // አራት ማዕዘን (4 Corners)
+               
             ];
 
-            // 1. መስመር ከሞላ
-            let won = wins.some(p => p.every(isM));
-            
-            // 2. ሙሉ ካርቴላው ከሞላ (እንደ ፎቶህ ሁኔታ)
-            let totalMarked = cells.filter(c => c.classList.contains('marked')).length;
-            if(totalMarked >= 25) won = true;
-
-            if(won) {
-                active = false;
-                clearInterval(loop);
-                setTimeout(() => { alert("🎉 ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); location.reload(); }, 500);
+            for (let p of winPatterns) {
+                if (p.every(isM)) {
+                    active = false;
+                    clearInterval(loop);
+                    setTimeout(() => { 
+                        alert("🎉 ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); 
+                        location.reload(); 
+                    }, 400);
+                    return true;
+                }
             }
+            return false;
         }
 
         function start() {
@@ -120,8 +119,9 @@
                         c.classList.add('marked');
                     }
                 });
-                checkWin();
-            }, 1000); // ፍጥነቱን ጨምሬዋለሁ (1 ሰከንድ)
+                
+                checkBingo(); // በእያንዳንዱ ቁጥር መቆጠር ላይ መስመር መሞላቱን ይፈትሻል
+            }, 2500); // ፍጥነቱን ለተጫዋቾች እንዲመች 2.5 ሰከንድ አድርጌዋለሁ
         }
     </script>
 </body>
