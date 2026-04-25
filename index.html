@@ -1,18 +1,19 @@
-let timeLeft = 30;
-let timerId;
+function generateBingoNumbers() {
+    let numbers = [];
+    // ከ1 እስከ 100 ያሉ ቁጥሮችን በቅደም ተከተል መሙላት
+    for (let i = 1; i <= 100; i++) {
+        numbers.push(i);
+    }
 
-function startGameTimer() {
-    // ካርቴላውን ማሳያ (ለምሳሌ የካርቴላውን ክፍል 'visible' በማድረግ)
-    document.getElementById('bingo-card').style.display = 'block';
-    
-    timerId = setInterval(() => {
-        if (timeLeft <= 0) {
-            clearInterval(timerId);
-            beginActualGame(); // 30 ሰከንዱ ሲያልቅ ጨዋታው ይጀምራል
-        } else {
-            // በስክሪኑ ላይ ሰከንዱን ማሳያ
-            document.getElementById('timer-display').innerText = timeLeft + " ሰከንድ ይቀራል";
-            timeLeft--;
-        }
-    }, 1000);
+    // ቁጥሮቹን በዘፈቀደ ማቀላቀል (Shuffle)
+    for (let i = numbers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+    }
+
+    return numbers;
 }
+
+// ቁጥሮቹን ለማመንጨት
+const bingoCardNumbers = generateBingoNumbers();
+console.log(bingoCardNumbers);
