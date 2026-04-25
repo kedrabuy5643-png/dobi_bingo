@@ -17,7 +17,7 @@
         .b-h{display:grid;grid-template-columns:repeat(5,1fr);background:#2d2d44;color:#4ecca3;font-weight:bold;padding:8px 0;border-radius:5px 5px 0 0}
         .card{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:4px}
         .cell{border:1px solid #eee;height:45px;display:flex;align-items:center;justify-content:center;font-weight:bold;border-radius:50%;font-size:16px;color:#333;background:#f9f9f9}
-        .mk{background:#4ecca3!important;color:#fff!important;border:none}
+        .mk{background:#4ecca3!important;color:#fff!important;border:none!important}
     </style>
 </head>
 <body onload="init()">
@@ -40,7 +40,7 @@
     </div>
 
     <script>
-        let sid, active = false, loop;
+        let sid, active = false, loop, checker;
         const gn = (a, b) => { let r = []; while(r.length < 5){ let v = Math.floor(Math.random() * (b - a + 1)) + a; if(!r.includes(v)) r.push(v); } return r; };
 
         function init() {
@@ -60,32 +60,41 @@
         }
 
         function checkBingo() {
+            if(!active) return;
             const cells = document.querySelectorAll('#gB .cell');
-            const isMk = (i) => cells[i].classList.contains('mk');
             const wins = [
                ,,,,, // አግድም
                ,,,,, // ቀጥታ
                ,, // አያያዝ
                 // 4 ማዕዘን
             ];
-            return wins.some(w => w.every(isMk));
+            
+            for(let w of wins) {
+                if(w.every(i => cells[i].classList.contains('mk'))) {
+                    active = false;
+                    clearInterval(loop);
+                    clearInterval(checker);
+                    setTimeout(() => { alert("🎉 ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); location.reload(); }, 300);
+                    break;
+                }
+            }
         }
 
         function start() {
             active = true; document.getElementById('pre').style.display='none'; document.getElementById('game').style.display='block';
             let nums = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5), idx = 0;
+            
+            // ቁጥር የሚጠራበት ሉፕ
             loop = setInterval(() => {
                 if(!active) return;
                 let n = nums[idx++];
                 let l = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
                 document.getElementById('bl').innerHTML = `<span>${l}</span>${n}`;
                 document.querySelectorAll('#gB .cell').forEach(c => { if(c.innerText == n) c.classList.add('mk'); });
-
-                if(checkBingo()) {
-                    active = false; clearInterval(loop);
-                    setTimeout(() => { alert("🎉 ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); location.reload(); }, 500);
-                }
             }, 3000);
+
+            // አሸናፊ በየ ግማሽ ሰከንዱ የሚፈትሽ ሉፕ
+            checker = setInterval(checkBingo, 500);
         }
     </script>
 </body>
