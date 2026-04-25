@@ -61,14 +61,14 @@
         }
 
         function sel(n) {
-            sid = n; mks.fill(false); mks = true;
+            sid = n; mks.fill(false); mks = true; // FREE space is marked
             document.getElementById('sT').innerText = "ካርቴላ " + n;
             document.getElementById('main').style.display = 'none';
             document.getElementById('pre').style.display = 'block';
             let cols = [gn(1,15), gn(16,30), gn(31,45), gn(46,60), gn(61,75)], h = "";
             for(let r=0; r<5; r++) for(let c=0; c<5; c++) {
                 let v = (r==2 && c==2) ? 'FREE' : cols[c][r];
-                h += `<div class="cell ${v=='FREE'?'mk':''}" id="c-${r}-${c}">${v}</div>`;
+                h += `<div class="cell ${v=='FREE'?'mk':''}" id="cell-${r*5+c}">${v}</div>`;
             }
             document.getElementById('pB').innerHTML = h;
             document.getElementById('gB').innerHTML = h;
@@ -80,10 +80,12 @@
         }
 
         function checkW() {
-            // Horizontal, Vertical, Diagonal, and Corners check
-            const w = [,,,,,
-                      ,,,,,
-                      ,,];
+            const w = [
+               ,,,,, // Horizontal
+               ,,,,, // Vertical
+               ,, // Diagonal
+                // Corners
+            ];
             return w.some(p => p.every(i => mks[i]));
         }
 
@@ -111,13 +113,14 @@
                     }
                 });
 
+                // ቢንጎ መኖሩን በእያንዳንዱ ኳስ ፍተሻ ያደርጋል
                 if(checkW()) {
                     active = false;
                     clearInterval(loop);
                     setTimeout(() => { 
-                        alert("ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); 
+                        alert("🎉 ቢንጎ! ካርቴላ " + sid + " አሸንፏል!"); 
                         location.reload(); 
-                    }, 800);
+                    }, 500);
                 }
             }, 3000);
         }
