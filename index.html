@@ -3,162 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dobi Bingo - Multiplayer Sync</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <title>Dobi Bingo</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background:#1a1a2e; color:#fff; font-family:sans-serif; text-align:center; margin:0; padding:10px; overflow:hidden; }
-        .stats { display:flex; justify-content:center; gap:10px; margin-bottom:10px; }
-        .box { background:#2d2d44; padding:8px; border-radius:8px; border:1px solid #4ecca3; flex:1; font-size:12px; }
-        .grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; padding:10px; }
-        .btn { background:#4ecca3; color:#1a1a2e; border:none; padding:12px 0; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; }
-        .btn:disabled { background: #444 !important; color: #777 !important; cursor: not-allowed; }
-        
-        #pre, #game, #win-overlay, #wait-screen { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#1a1a2e; padding:10px; box-sizing:border-box; z-index:100; }
-        #win-overlay { background:rgba(26, 26, 46, 0.95); z-index:200; flex-direction:column; align-items:center; justify-content:center; }
-        
-        .ball { width:70px; height:70px; background:#4ecca3; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:22px; font-weight:bold; margin:10px auto; color:#1a1a2e; border:4px solid #fff; box-shadow:0 0 15px #4ecca3; }
-        .card-container { background:#fff; padding:5px; border-radius:12px; margin:0 auto; max-width:320px; }
-        .b-header { display:grid; grid-template-columns:repeat(5, 1fr); background:#2d2d44; color:#4ecca3; font-weight:bold; padding:5px 0; border-radius:8px 8px 0 0; }
-        .card { display:grid; grid-template-columns:repeat(5, 1fr); gap:3px; margin-top:4px; }
-        .cell { border:1px solid #eee; height:42px; display:flex; align-items:center; justify-content:center; font-weight:bold; border-radius:50%; font-size:14px; color:#333; background:#f9f9f9; }
-        .marked { background:#4ecca3 !important; color:#fff !important; border:none !important; }
-        
-        .alert-box { background: #ff4757; color: white; padding: 10px; border-radius: 8px; margin: 10px; font-size: 14px; display: none; }
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --accent: #e94560;
+            --text-color: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        h2 { margin-bottom: 5px; color: var(--accent); }
+        p { font-size: 0.9em; opacity: 0.8; margin-bottom: 20px; }
+
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 350px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: #0f3460;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            user-select: none;
+        }
+
+        .cell:active { transform: scale(0.9); }
+
+        .cell.selected {
+            background: var(--accent);
+            border-color: #fff;
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        .controls { margin-top: 25px; width: 100%; max-width: 350px; }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+        }
+
+        .btn:active { transform: translateY(2px); }
     </style>
 </head>
-<body onload="init()">
+<body>
 
-    <div id="main">
-        <div class="stats"><div class="box">Wallet<br>0.00</div><div class="box">Stake<br>10</div></div>
-        <h2 style="color:#4ecca3;">ካርቴላ ይምረጡ</h2>
-        
-        <div id="sync-timer" style="font-size:24px; color:#ff4757; font-weight:bold; margin-bottom:10px;">የመመዝገቢያ ጊዜ: <span id="reg-tm">15</span></div>
-        
-        <div id="wait-msg" class="alert-box">ጨዋታው ተጀምሯል! እባክዎ ለቀጣይ ዙር ይጠብቁ።</div>
-        
-        <div class="grid" id="mG"></div>
-    </div>
+    <h2>DOBI BINGO 🎰</h2>
+    <p id="user-greet">መልካም እድል!</p>
 
-    <div id="win-overlay">
-        <h1 style="color:#4ecca3; font-size:50px;">BINGO!</h1>
-        <h3 id="win-msg">ካርቴላ አሸንፏል!</h3>
-        <p>ጨዋታው በራሱ በአዲስ ይጀምራል...</p>
-        <button class="btn" style="padding:15px 40px;" onclick="location.reload()">አሁኑኑ ተመለስ</button>
-    </div>
+    <div class="bingo-grid" id="bingoCard">
+        </div>
 
-    <div id="game">
-        <div id="bl" class="ball"><span>-</span>-</div>
-        <div class="card-container"><div class="b-header"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div><div class="card" id="gB"></div></div>
-        <p style="color:#4ecca3; margin-top:10px;">ጨዋታው በመካሄድ ላይ ነው...</p>
+    <div class="controls">
+        <button class="btn" onclick="generateCard()">አዲስ ካርድ አውጣ 🔄</button>
     </div>
 
     <script>
-        let sid, active = false, loop, regTimer;
-        let timeLeft = 15;
-        let isGameStarted = false;
+        const tele = window.Telegram.WebApp;
+        tele.ready();
+        tele.expand(); // አፑን ሙሉ ገጽ ያደርገዋል
 
-        const gn = (a, b) => { let r = []; while(r.length < 5){ let v = Math.floor(Math.random()*(b-a+1))+a; if(!r.includes(v)) r.push(v); } return r; };
-
-        function init() {
-            let h = ""; 
-            for(let i=1; i<=16; i++) h += `<button class="btn" id="btn-${i}" onclick="sel(${i})">${i}</button>`;
-            document.getElementById('mG').innerHTML = h;
-            startRegistrationTimer();
+        // የተጠቃሚውን ስም ከቴሌግራም መቀበል
+        if (tele.initDataUnsafe && tele.initDataUnsafe.user) {
+            document.getElementById('user-greet').innerText = "ሰላም " + tele.initDataUnsafe.user.first_name + "! መልካም እድል!";
         }
 
-        function startRegistrationTimer() {
-            timeLeft = 15;
-            isGameStarted = false;
-            document.getElementById('reg-tm').innerText = timeLeft;
-            document.getElementById('wait-msg').style.display = 'none';
-            
-            regTimer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('reg-tm').innerText = timeLeft;
+        function generateCard() {
+            const grid = document.getElementById('bingoCard');
+            grid.innerHTML = '';
+            let nums = [];
 
-                if(timeLeft <= 0) {
-                    clearInterval(regTimer);
-                    lockRegistration();
-                }
-            }, 1000);
-        }
-
-        function lockRegistration() {
-            isGameStarted = true;
-            // የመረጠ ካለ ወደ ጨዋታ ይገባል፣ ያልመረጠ ግን እንዲጠብቅ ይደረጋል
-            if(!sid) {
-                document.querySelectorAll('.btn').forEach(b => b.disabled = true);
-                document.getElementById('wait-msg').style.display = 'block';
-                document.getElementById('sync-timer').style.color = '#777';
-                document.getElementById('sync-timer').innerText = "ጨዋታው ተጀምሯል...";
-            } else {
-                startGame();
+            // 25 ልዩ ቁጥሮችን ማመንጨት (1-75)
+            while(nums.length < 25) {
+                let r = Math.floor(Math.random() * 75) + 1;
+                if(nums.indexOf(r) === -1) nums.push(r);
             }
+
+            nums.forEach(n => {
+                let cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.innerText = n;
+                cell.onclick = function() {
+                    this.classList.toggle('selected');
+                    // ስልኩ እንዲርገበገብ (Haptic)
+                    if (tele.HapticFeedback) {
+                        tele.HapticFeedback.impactOccurred('medium');
+                    }
+                };
+                grid.appendChild(cell);
+            });
         }
 
-        function sel(n) {
-            if(isGameStarted) return;
-            sid = n;
-            // የተመረጠውን በተን ቀለም መቀየር
-            document.querySelectorAll('.btn').forEach(b => b.style.background = '#4ecca3');
-            document.getElementById(`btn-${n}`).style.background = '#fff';
-            document.getElementById(`btn-${n}`).style.color = '#1a1a2e';
-            
-            // የካርቴላ ዳታ ማዘጋጀት
-            let cols = [gn(1,15), gn(16,30), gn(31,45), gn(46,60), gn(61,75)];
-            let h = "";
-            for(let r=0; r<5; r++) for(let c=0; c<5; c++) {
-                let v = (r==2 && c==2) ? 'FREE' : cols[c][r];
-                h += `<div class="cell" id="gB-cell-${r}-${c}" data-v="${v}">${v}</div>`;
-            }
-            document.getElementById('gB').innerHTML = h;
-            document.getElementById('gB-cell-2-2').classList.add('marked');
-        }
-
-        function startGame() {
-            document.getElementById('main').style.display = 'none';
-            document.getElementById('game').style.display = 'block';
-            active = true;
-            let nums = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-            let idx = 0;
-
-            loop = setInterval(() => {
-                if(!active || idx >= 75) return;
-                let n = nums[idx++];
-                let l = n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
-                document.getElementById('bl').innerHTML = `<span>${l}</span>${n}`;
-                document.querySelectorAll('#gB .cell').forEach(c => {
-                    if(c.getAttribute('data-v') == n.toString()) c.classList.add('marked');
-                });
-
-                if(checkBingo()) {
-                    celebrate();
-                }
-            }, 2500);
-        }
-
-        function checkBingo() {
-            const isM = (r, c) => document.getElementById(`gB-cell-${r}-${c}`).classList.contains('marked');
-            for (let r = 0; r < 5; r++) if (isM(r,0) && isM(r,1) && isM(r,2) && isM(r,3) && isM(r,4)) return true;
-            for (let c = 0; c < 5; c++) if (isM(0,c) && isM(1,c) && isM(2,c) && isM(3,c) && isM(4,c)) return true;
-            if (isM(0,0) && isM(1,1) && isM(2,2) && isM(3,3) && isM(4,4)) return true;
-            if (isM(0,4) && isM(1,3) && isM(2,2) && isM(3,1) && isM(4,0)) return true;
-            if (isM(0,0) && isM(0,4) && isM(4,0) && isM(4,4)) return true;
-            return false;
-        }
-
-        function celebrate() {
-            active = false;
-            clearInterval(loop);
-            document.getElementById('win-overlay').style.display = 'flex';
-            document.getElementById('win-msg').innerText = "ካርቴላ ቁጥር " + sid + " አሸንፏል!";
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-
-            // ከ 7 ሰከንድ በኋላ ሁሉም ሰው ወደ መጀመሪያው እንዲመለስ
-            setTimeout(() => {
-                location.reload();
-            }, 7000);
-        }
+        // መጀመሪያ ሲከፈት እንዲሰራ
+        generateCard();
     </script>
 </body>
 </html>
