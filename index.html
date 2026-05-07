@@ -3,134 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dobi Bingo</title>
+    <title>Nikel Bingo</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --bg-color: #1a1a2e;
-            --card-bg: #16213e;
-            --accent: #e94560;
-            --text-color: #ffffff;
-        }
-
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            text-align: center;
             margin: 0;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-x: hidden;
         }
-
-        h2 { margin-bottom: 5px; color: var(--accent); }
-        p { font-size: 0.9em; opacity: 0.8; margin-bottom: 20px; }
-
-        .bingo-grid {
+        .card {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            width: 100%;
+            gap: 5px;
             max-width: 350px;
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin: 20px auto;
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 10px;
         }
-
-        .cell {
+        .num {
             aspect-ratio: 1;
-            background: #0f3460;
-            border-radius: 8px;
+            background: #333;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
             font-weight: bold;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            border: 2px solid transparent;
-            user-select: none;
         }
-
-        .cell:active { transform: scale(0.9); }
-
-        .cell.selected {
-            background: var(--accent);
-            border-color: #fff;
-            box-shadow: 0 0 15px var(--accent);
+        .num.clicked {
+            background: #f39c12;
+            color: black;
         }
-
-        .controls { margin-top: 25px; width: 100%; max-width: 350px; }
-
         .btn {
-            width: 100%;
-            padding: 15px;
+            background: #f39c12;
             border: none;
-            border-radius: 10px;
-            font-size: 1rem;
+            padding: 15px 30px;
+            color: black;
             font-weight: bold;
-            cursor: pointer;
-            background: var(--accent);
-            color: white;
-            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+            border-radius: 8px;
+            margin-top: 20px;
         }
-
-        .btn:active { transform: translateY(2px); }
     </style>
 </head>
 <body>
-
-    <h2>DOBI BINGO 🎰</h2>
-    <p id="user-greet">መልካም እድል!</p>
-
-    <div class="bingo-grid" id="bingoCard">
-        </div>
-
-    <div class="controls">
-        <button class="btn" onclick="generateCard()">አዲስ ካርድ አውጣ 🔄</button>
-    </div>
+    <h2>NIKEL BINGO 🎰</h2>
+    <div class="card" id="bingoGrid"></div>
+    <button class="btn" onclick="window.location.reload()">አዲስ ካርድ</button>
 
     <script>
-        const tele = window.Telegram.WebApp;
-        tele.ready();
-        tele.expand(); // አፑን ሙሉ ገጽ ያደርገዋል
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand(); // ሚኒ አፑን ወደ ላይ ከፍ እንዲል ያደርገዋል
 
-        // የተጠቃሚውን ስም ከቴሌግራም መቀበል
-        if (tele.initDataUnsafe && tele.initDataUnsafe.user) {
-            document.getElementById('user-greet').innerText = "ሰላም " + tele.initDataUnsafe.user.first_name + "! መልካም እድል!";
+        const grid = document.getElementById('bingoGrid');
+        let nums = [];
+        while(nums.length < 25) {
+            let r = Math.floor(Math.random() * 75) + 1;
+            if(nums.indexOf(r) === -1) nums.push(r);
         }
 
-        function generateCard() {
-            const grid = document.getElementById('bingoCard');
-            grid.innerHTML = '';
-            let nums = [];
-
-            // 25 ልዩ ቁጥሮችን ማመንጨት (1-75)
-            while(nums.length < 25) {
-                let r = Math.floor(Math.random() * 75) + 1;
-                if(nums.indexOf(r) === -1) nums.push(r);
-            }
-
-            nums.forEach(n => {
-                let cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.innerText = n;
-                cell.onclick = function() {
-                    this.classList.toggle('selected');
-                    // ስልኩ እንዲርገበገብ (Haptic)
-                    if (tele.HapticFeedback) {
-                        tele.HapticFeedback.impactOccurred('medium');
-                    }
-                };
-                grid.appendChild(cell);
-            });
-        }
-
-        // መጀመሪያ ሲከፈት እንዲሰራ
-        generateCard();
+        nums.forEach(n => {
+            let d = document.createElement('div');
+            d.className = 'num';
+            d.innerText = n;
+            d.onclick = function() {
+                this.classList.toggle('clicked');
+                if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            };
+            grid.appendChild(d);
+        });
     </script>
 </body>
 </html>
