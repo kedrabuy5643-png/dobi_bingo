@@ -6,23 +6,38 @@
     <title>Nikel Bingo</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --primary-color: #f39c12;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+        }
         body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
             color: white;
             text-align: center;
             margin: 0;
             padding: 20px;
+            overflow: hidden; /* እንዳይሸራተት */
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+        .user-info {
+            font-size: 14px;
+            color: #bbb;
+            margin-bottom: 10px;
         }
         .card {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 5px;
+            gap: 8px;
             max-width: 350px;
-            margin: 20px auto;
-            background: #1e1e1e;
-            padding: 10px;
-            border-radius: 10px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
         .num {
             aspect-ratio: 1;
@@ -31,51 +46,102 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            border-radius: 5px;
+            font-size: 1.2rem;
+            border-radius: 8px;
             cursor: pointer;
+            transition: transform 0.1s, background 0.3s;
+        }
+        .num:active {
+            transform: scale(0.9);
         }
         .num.clicked {
-            background: #f39c12;
+            background: var(--primary-color);
             color: black;
         }
+        .controls {
+            margin-top: 25px;
+        }
         .btn {
-            background: #f39c12;
+            background: var(--primary-color);
             border: none;
-            padding: 15px 30px;
+            padding: 12px 25px;
             color: black;
             font-weight: bold;
-            border-radius: 8px;
-            margin-top: 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            width: 80%;
+            max-width: 300px;
         }
     </style>
 </head>
 <body>
-    <h2>NIKEL BINGO 🎰</h2>
+    <div class="header">
+        <h2 id="title">NIKEL BINGO 🎰</h2>
+        <div class="user-info" id="userDisplay">እንኳን መጡ!</div>
+    </div>
+
     <div class="card" id="bingoGrid"></div>
-    <button class="btn" onclick="window.location.reload()">አዲስ ካርድ</button>
+
+    <div class="controls">
+        <button class="btn" id="winBtn" style="display:none;" onclick="sendWin()">ቢንጎ! አሸንፌያለሁ 🏆</button>
+        <button class="btn" onclick="window.location.reload()" style="margin-top: 10px; background: #444; color: white;">አዲስ ካርድ ይቀይሩ</button>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand(); // ሚኒ አፑን ወደ ላይ ከፍ እንዲል ያደርገዋል
+        tg.expand();
+
+        // የተጠቃሚውን ስም ከቴሌግራም መቀበል
+        const user = tg.initDataUnsafe.user;
+        if (user) {
+            document.getElementById('userDisplay').innerText = "ተጫዋች: " + user.first_name;
+        }
 
         const grid = document.getElementById('bingoGrid');
+        let clickedCount = 0;
         let nums = [];
+
+        // 1-75 ቁጥሮችን በዘፈቀደ ማውጣት
         while(nums.length < 25) {
             let r = Math.floor(Math.random() * 75) + 1;
             if(nums.indexOf(r) === -1) nums.push(r);
         }
 
+        // ካርዶቹን መሥራት
         nums.forEach(n => {
             let d = document.createElement('div');
             d.className = 'num';
             d.innerText = n;
             d.onclick = function() {
-                this.classList.toggle('clicked');
-                if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                if(!this.classList.contains('clicked')) {
+                    this.classList.add('clicked');
+                    clickedCount++;
+                    // ስልኩ እንዲርገበገብ (Haptic)
+                    if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                    
+                    // ለምሳሌ 5 ቁጥር ሲነካ የቢንጎ ቁልፍ እንዲመጣ (እንደ ሎጂክህ ይለያያል)
+                    if(clickedCount >= 5) {
+                        document.getElementById('winBtn').style.display = 'inline-block';
+                    }
+                } else {
+                    this.classList.remove('clicked');
+                    clickedCount--;
+                }
             };
             grid.appendChild(d);
         });
+
+        // ውጤቱን ወደ ቦቱ መላክ
+        function sendWin() {
+            const data = {
+                game: "Nikel Bingo",
+                status: "Winner",
+                user_id: user ? user.id : "unknown"
+            };
+            tg.sendData(JSON.stringify(data));
+            tg.close(); // መረጃውን ልኮ አፑን ይዘጋዋል
+        }
     </script>
 </body>
 </html>
