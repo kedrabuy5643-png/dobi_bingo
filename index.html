@@ -3,130 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nikel Bingo Game</title>
+    <title>Nikel Bingo</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: white;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-        }
-
-        /* የቁጥሮች መደርደሪያ (Grid) */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            max-height: 400px;
-            overflow-y: auto;
-            background: #1e1e1e;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-
-        .number-btn {
-            padding: 15px;
-            background: #333;
-            color: white;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .number-btn:hover { background: #555; }
-        .number-btn:active { background: #007bff; }
-
-        /* የካርቴላ ማሳያ ስክሪን */
-        #preview-screen {
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-
-        #timer-display {
-            font-size: 24px;
-            color: #ff4d4d;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-
-        /* ዋናው ጨዋታ (ለጊዜው የተደበቀ) */
-        #game-screen {
-            padding: 50px;
-            font-size: 28px;
-        }
+        body { font-family: sans-serif; background-color: #121212; color: white; text-align: center; margin: 0; padding: 20px; }
+        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 400px; margin: 0 auto; max-height: 400px; overflow-y: auto; padding: 10px; background: #1e1e1e; border-radius: 10px; }
+        .num-btn { background: #333; color: white; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .num-btn:hover { background: #555; }
+        #selection-screen, #game-screen { display: block; }
+        #game-screen { display: none; margin-top: 20px; }
+        .timer { font-size: 24px; color: #ffcc00; margin: 20px 0; }
+        .bingo-card { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-width: 300px; margin: 0 auto; background: #444; padding: 10px; border-radius: 10px; }
+        .card-cell { background: #fff; color: #000; padding: 15px; font-weight: bold; border-radius: 3px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- 1. የቁጥር መምረጫ ስክሪን -->
     <div id="selection-screen">
         <h2>ቁጥር ይምረጡ (1-200)</h2>
-        <div id="number-grid" class="grid-container">
-            <!-- ቁጥሮቹ በJS እዚህ ይፈጠራሉ -->
-        </div>
+        <div class="number-grid" id="grid"></div>
     </div>
 
-    <!-- 2. የካርቴላ ቅድመ-ዕይታ እና ታይመር -->
-    <div id="preview-screen" style="display:none;">
-        <h2>የተመረጠ ካርቴላ ቁጥር: <span id="selected-no" style="color:#007bff;"></span></h2>
-        <div id="cartela-box" style="border: 2px solid #555; padding: 20px; margin: 20px 0;">
-            <p>🖼 ካርቴላ ቁጥር <span id="cartela-id-text"></span> እዚህ ጋር ይታያል</p>
-            <!-- እዚህ ጋር ምስል ማስገባት ትችላለህ: <img id="cartela-img" src="" style="width:100%"> -->
-        </div>
-        <div id="timer-display">ጨዋታው በ <span id="seconds">30</span> ሰከንድ ይጀምራል...</div>
-    </div>
-
-    <!-- 3. ዋናው የጨዋታ ስክሪን -->
-    <div id="game-screen" style="display:none;">
-        <h1>🎰 ጨዋታው ተጀምሯል! 🎰</h1>
-        <p>መልካም ዕድል!</p>
-        <!-- ያንተ የቢንጎ ጨዋታ logic እዚህ ይገባል -->
+    <div id="game-screen">
+        <div class="timer" id="timer-display">ጨዋታው ለመጀመር፡ 30 ሰከንድ</div>
+        <h3>የእርስዎ ካርቴላ</h3>
+        <div class="bingo-card" id="user-card"></div>
     </div>
 
     <script>
-        // ቁጥሮቹን ከ1 እስከ 200 መፍጠር
-        const grid = document.getElementById('number-grid');
+        const grid = document.getElementById('grid');
+        const selectionScreen = document.getElementById('selection-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const timerDisplay = document.getElementById('timer-display');
+        const cardDisplay = document.getElementById('user-card');
+
+        // 1. ከ 1-200 ያሉ ቁጥሮችን መፍጠር
         for (let i = 1; i <= 200; i++) {
-            let btn = document.createElement('div');
-            btn.className = 'number-btn';
+            let btn = document.createElement('button');
             btn.innerText = i;
-            btn.onclick = () => selectCartela(i);
+            btn.className = 'num-btn';
+            btn.onclick = () => selectNumber(i);
             grid.appendChild(btn);
         }
 
-        function selectCartela(num) {
-            // መምረጫውን ደብቆ ማሳያውን ማምጣት
-            document.getElementById('selection-screen').style.display = 'none';
-            document.getElementById('preview-screen').style.display = 'block';
-            document.getElementById('selected-no').innerText = num;
-            document.getElementById('cartela-id-text').innerText = num;
-
-            // የ30 ሰከንድ ቆጠራ
-            let timeLeft = 30;
-            const timerSpan = document.getElementById('seconds');
+        function selectNumber(num) {
+            selectionScreen.classList.add('hidden');
+            gameScreen.style.display = 'block';
             
-            const countdown = setInterval(() => {
+            generateBingoCard();
+            startTimer();
+        }
+
+        // 2. የቢንጎ ካርቴላ መፍጠር (Random 25 numbers)
+        function generateBingoCard() {
+            cardDisplay.innerHTML = "";
+            let numbers = [];
+            while(numbers.length < 25) {
+                let r = Math.floor(Math.random() * 75) + 1;
+                if(numbers.indexOf(r) === -1) numbers.push(r);
+            }
+            numbers.forEach(n => {
+                let cell = document.createElement('div');
+                cell.className = 'card-cell';
+                cell.innerText = n;
+                cardDisplay.appendChild(cell);
+            });
+        }
+
+        // 3. የ 30 ሰከንድ ቆጠራ
+        function startTimer() {
+            let timeLeft = 30;
+            let countdown = setInterval(() => {
                 timeLeft--;
-                timerSpan.innerText = timeLeft;
+                timerDisplay.innerText = `ጨዋታው ለመጀመር፡ ${timeLeft} ሰከንድ`;
                 
                 if (timeLeft <= 0) {
                     clearInterval(countdown);
-                    startGame();
+                    timerDisplay.innerText = "ጨዋታው ተጀምሯል!";
+                    // እዚህ ጋር የቦቱን የጨዋታ Logic መጥራት ትችላለህ
                 }
             }, 1000);
         }
-
-        function startGame() {
-            document.getElementById('preview-screen').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'block';
-        }
     </script>
-
 </body>
 </html>
