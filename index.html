@@ -2,146 +2,131 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nikel Bingo</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nikel Bingo Game</title>
     <style>
-        :root {
-            --primary-color: #f39c12;
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
+            font-family: Arial, sans-serif;
+            background-color: #121212;
             color: white;
             text-align: center;
             margin: 0;
             padding: 20px;
-            overflow: hidden; /* እንዳይሸራተት */
         }
-        .header {
-            margin-bottom: 20px;
-        }
-        .user-info {
-            font-size: 14px;
-            color: #bbb;
-            margin-bottom: 10px;
-        }
-        .card {
+
+        /* የቁጥሮች መደርደሪያ (Grid) */
+        .grid-container {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            max-width: 350px;
-            margin: 0 auto;
-            background: var(--card-bg);
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: #1e1e1e;
             padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        .num {
-            aspect-ratio: 1;
-            background: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.1s, background 0.3s;
-        }
-        .num:active {
-            transform: scale(0.9);
-        }
-        .num.clicked {
-            background: var(--primary-color);
-            color: black;
-        }
-        .controls {
-            margin-top: 25px;
-        }
-        .btn {
-            background: var(--primary-color);
-            border: none;
-            padding: 12px 25px;
-            color: black;
-            font-weight: bold;
             border-radius: 10px;
-            font-size: 16px;
-            width: 80%;
-            max-width: 300px;
+            margin-top: 20px;
+        }
+
+        .number-btn {
+            padding: 15px;
+            background: #333;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .number-btn:hover { background: #555; }
+        .number-btn:active { background: #007bff; }
+
+        /* የካርቴላ ማሳያ ስክሪን */
+        #preview-screen {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        #timer-display {
+            font-size: 24px;
+            color: #ff4d4d;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        /* ዋናው ጨዋታ (ለጊዜው የተደበቀ) */
+        #game-screen {
+            padding: 50px;
+            font-size: 28px;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h2 id="title">NIKEL BINGO 🎰</h2>
-        <div class="user-info" id="userDisplay">እንኳን መጡ!</div>
+
+    <!-- 1. የቁጥር መምረጫ ስክሪን -->
+    <div id="selection-screen">
+        <h2>ቁጥር ይምረጡ (1-200)</h2>
+        <div id="number-grid" class="grid-container">
+            <!-- ቁጥሮቹ በJS እዚህ ይፈጠራሉ -->
+        </div>
     </div>
 
-    <div class="card" id="bingoGrid"></div>
+    <!-- 2. የካርቴላ ቅድመ-ዕይታ እና ታይመር -->
+    <div id="preview-screen" style="display:none;">
+        <h2>የተመረጠ ካርቴላ ቁጥር: <span id="selected-no" style="color:#007bff;"></span></h2>
+        <div id="cartela-box" style="border: 2px solid #555; padding: 20px; margin: 20px 0;">
+            <p>🖼 ካርቴላ ቁጥር <span id="cartela-id-text"></span> እዚህ ጋር ይታያል</p>
+            <!-- እዚህ ጋር ምስል ማስገባት ትችላለህ: <img id="cartela-img" src="" style="width:100%"> -->
+        </div>
+        <div id="timer-display">ጨዋታው በ <span id="seconds">30</span> ሰከንድ ይጀምራል...</div>
+    </div>
 
-    <div class="controls">
-        <button class="btn" id="winBtn" style="display:none;" onclick="sendWin()">ቢንጎ! አሸንፌያለሁ 🏆</button>
-        <button class="btn" onclick="window.location.reload()" style="margin-top: 10px; background: #444; color: white;">አዲስ ካርድ ይቀይሩ</button>
+    <!-- 3. ዋናው የጨዋታ ስክሪን -->
+    <div id="game-screen" style="display:none;">
+        <h1>🎰 ጨዋታው ተጀምሯል! 🎰</h1>
+        <p>መልካም ዕድል!</p>
+        <!-- ያንተ የቢንጎ ጨዋታ logic እዚህ ይገባል -->
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        // የተጠቃሚውን ስም ከቴሌግራም መቀበል
-        const user = tg.initDataUnsafe.user;
-        if (user) {
-            document.getElementById('userDisplay').innerText = "ተጫዋች: " + user.first_name;
+        // ቁጥሮቹን ከ1 እስከ 200 መፍጠር
+        const grid = document.getElementById('number-grid');
+        for (let i = 1; i <= 200; i++) {
+            let btn = document.createElement('div');
+            btn.className = 'number-btn';
+            btn.innerText = i;
+            btn.onclick = () => selectCartela(i);
+            grid.appendChild(btn);
         }
 
-        const grid = document.getElementById('bingoGrid');
-        let clickedCount = 0;
-        let nums = [];
+        function selectCartela(num) {
+            // መምረጫውን ደብቆ ማሳያውን ማምጣት
+            document.getElementById('selection-screen').style.display = 'none';
+            document.getElementById('preview-screen').style.display = 'block';
+            document.getElementById('selected-no').innerText = num;
+            document.getElementById('cartela-id-text').innerText = num;
 
-        // 1-75 ቁጥሮችን በዘፈቀደ ማውጣት
-        while(nums.length < 25) {
-            let r = Math.floor(Math.random() * 75) + 1;
-            if(nums.indexOf(r) === -1) nums.push(r);
-        }
-
-        // ካርዶቹን መሥራት
-        nums.forEach(n => {
-            let d = document.createElement('div');
-            d.className = 'num';
-            d.innerText = n;
-            d.onclick = function() {
-                if(!this.classList.contains('clicked')) {
-                    this.classList.add('clicked');
-                    clickedCount++;
-                    // ስልኩ እንዲርገበገብ (Haptic)
-                    if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-                    
-                    // ለምሳሌ 5 ቁጥር ሲነካ የቢንጎ ቁልፍ እንዲመጣ (እንደ ሎጂክህ ይለያያል)
-                    if(clickedCount >= 5) {
-                        document.getElementById('winBtn').style.display = 'inline-block';
-                    }
-                } else {
-                    this.classList.remove('clicked');
-                    clickedCount--;
+            // የ30 ሰከንድ ቆጠራ
+            let timeLeft = 30;
+            const timerSpan = document.getElementById('seconds');
+            
+            const countdown = setInterval(() => {
+                timeLeft--;
+                timerSpan.innerText = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    startGame();
                 }
-            };
-            grid.appendChild(d);
-        });
+            }, 1000);
+        }
 
-        // ውጤቱን ወደ ቦቱ መላክ
-        function sendWin() {
-            const data = {
-                game: "Nikel Bingo",
-                status: "Winner",
-                user_id: user ? user.id : "unknown"
-            };
-            tg.sendData(JSON.stringify(data));
-            tg.close(); // መረጃውን ልኮ አፑን ይዘጋዋል
+        function startGame() {
+            document.getElementById('preview-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
         }
     </script>
+
 </body>
 </html>
