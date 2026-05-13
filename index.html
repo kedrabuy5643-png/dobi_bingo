@@ -3,106 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nikel Bingo</title>
+    <title>Nikel Bingo Pro</title>
     <style>
-        :root { --bg-color: #1a0b38; --card-bg: #2d1b5a; --accent: #f39c12; --text-color: #ffffff; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(180deg, #2d1b5a 0%, #1a0b38 100%); color: var(--text-color); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        :root { --main-bg: #1a0b38; --card-purple: #2d1b5a; --accent: #f39c12; --win-green: #2ecc71; --call-orange: #e67e22; }
+        body { font-family: sans-serif; background: var(--main-bg); color: white; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* Top Header */
-        .header-stats { display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 5px; padding: 10px; background: rgba(0,0,0,0.2); }
-        .stat-box { background: rgba(255,255,255,0.1); padding: 5px; border-radius: 5px; text-align: center; font-size: 12px; }
-        .stat-box span { display: block; font-weight: bold; color: var(--accent); }
-        .timer-badge { background: #000; color: var(--accent); padding: 5px 10px; border-radius: 5px; font-weight: bold; display: flex; align-items: center; }
+        /* Selection View */
+        #selection-view { padding: 10px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; height: 100%; }
+        .grid-200 { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; }
+        .btn-small { background: #444; border: none; color: white; padding: 8px 2px; border-radius: 4px; font-size: 12px; }
+        .selected-btn { background: var(--accent) !important; }
 
-        /* Main Content */
-        .main-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        /* Timer Overlay */
+        .timer-info { margin: 15px 0; font-size: 18px; color: var(--accent); font-weight: bold; }
 
-        /* Number Grid (Selection) */
-        .selection-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; width: 100%; max-width: 400px; }
-        .num-btn { background: #e64a19; color: white; border: none; padding: 10px 2px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        /* Game View (Split Screen) */
+        #game-view { display: flex; height: 100%; display: none; }
+        .side-board { width: 40%; background: rgba(0,0,0,0.4); padding: 5px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; border-right: 1px solid #444; }
+        .board-col { display: flex; flex-direction: column; gap: 2px; }
+        .board-header { background: #3498db; text-align: center; font-weight: bold; padding: 5px 0; font-size: 12px; }
+        .board-num { background: #333; font-size: 10px; text-align: center; padding: 4px 0; border-radius: 2px; }
+        .marked-board { background: var(--call-orange) !important; }
 
-        /* Watching Only Screen */
-        .watching-only { text-align: center; margin-top: 50px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); width: 80%; }
-        .watching-only h2 { color: var(--accent); margin-bottom: 20px; }
-
-        /* Bottom Nav */
-        .bottom-nav { display: grid; grid-template-columns: repeat(4, 1fr); background: #120826; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1); }
-        .nav-item { text-align: center; font-size: 12px; color: #888; cursor: pointer; }
-        .nav-item.active { color: white; }
-        .nav-icon { display: block; font-size: 20px; margin-bottom: 2px; }
-
-        .hidden { display: none !important; }
+        .play-area { width: 60%; display: flex; flex-direction: column; padding: 10px; align-items: center; position: relative; }
+        .call-display { background: white; color: black; width: 80px; height: 80px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 5px solid var(--accent); margin-bottom: 20px; font-weight: bold; }
+        
+        /* Bingo Card in Play Area */
+        .card-container { width: 100%; max-width: 280px; background: var(--card-purple); padding: 10px; border-radius: 10px; }
+        .bingo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+        .cell { background: white; color: black; text-align: center; padding: 10px 0; font-weight: bold; font-size: 14px; border-radius: 3px; position: relative; }
+        .marked { background: var(--win-green) !important; color: white; }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
-    <div class="header-stats">
-        <div class="stat-box">Main Wallet <span id="main-wallet">0</span></div>
-        <div class="stat-box">Play Wallet <span id="play-wallet">0</span></div>
-        <div class="stat-box">Stake <span id="stake-val">10</span></div>
-        <div class="timer-badge" id="timer">25 s</div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-container" id="content-area">
-        <!-- ይህ ክፍል ቁጥሮችን ያሳያል -->
-        <div id="selection-screen" class="selection-grid">
-            <!-- ቁጥሮች በ JS ይፈጠራሉ -->
-        </div>
-
-        <!-- ጨዋታው ከተጀመረ ይህ ይታያል -->
-        <div id="watching-screen" class="watching-only hidden">
-            <h2>Watching Only</h2>
-            <p>የዚህ ዙር ጨዋታ ተጀምሯል። አዲስ ዙር እስኪጀመር እዚህ ይጠብቁ።</p>
-            <button onclick="location.reload()" style="background:var(--accent); border:none; padding:10px 20px; border-radius:5px; color:white; margin-top:20px;">Refresh</button>
+    <!-- 1. Selection & Pre-Game View -->
+    <div id="selection-view">
+        <h3 style="color:var(--accent)">ቁጥር ይምረጡ (1-200)</h3>
+        <div class="grid-200" id="num-grid"></div>
+        
+        <div id="pre-game-card" class="hidden" style="margin-top:20px; width:100%">
+            <div class="timer-info" id="timer-text"></div>
+            <div class="card-container" style="margin: 0 auto;">
+                <div class="bingo-grid" id="preview-grid"></div>
+            </div>
         </div>
     </div>
 
-    <!-- Bottom Nav -->
-    <div class="bottom-nav">
-        <div class="nav-item active"><span class="nav-icon">🎮</span>Game</div>
-        <div class="nav-item"><span class="nav-icon">🕒</span>History</div>
-        <div class="nav-item"><span class="nav-icon">💰</span>Wallet</div>
-        <div class="nav-item"><span class="nav-icon">👤</span>Profile</div>
+    <!-- 2. Active Game View (Like image 1000013574_2.jpg) -->
+    <div id="game-view">
+        <!-- Left Side Board -->
+        <div class="side-board" id="side-board"></div>
+
+        <!-- Right Play Area -->
+        <div class="play-area">
+            <div class="call-display">
+                <span id="call-letter" style="font-size:14px">START</span>
+                <span id="call-number" style="font-size:24px">--</span>
+            </div>
+
+            <div class="card-container">
+                <p style="text-align:center; font-size:12px; margin-top:0;">Watching Only</p>
+                <div class="bingo-grid" id="active-card-grid"></div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const selectionScreen = document.getElementById('selection-screen');
-        const watchingScreen = document.getElementById('watching-screen');
-        const timerDisplay = document.getElementById('timer');
+        let myNumbers = [];
+        let calledNumbers = [];
+        const ranges = [[1,15], [16,30], [31,45], [46,60], [61,75]];
+        const letters = ['B', 'I', 'N', 'G', 'O'];
 
-        // 1. የቁጥር ሰሌዳ መፍጠር (1-96 በምስሉ መሰረት)
-        for (let i = 1; i <= 96; i++) {
+        // 1. Generate Selection Grid
+        const grid = document.getElementById('num-grid');
+        for (let i = 1; i <= 200; i++) {
             let btn = document.createElement('button');
+            btn.className = 'btn-small';
             btn.innerText = i;
-            btn.className = 'num-btn';
-            btn.onclick = () => selectNumber(i);
-            selectionScreen.appendChild(btn);
+            btn.onclick = () => startPreparation(i, btn);
+            grid.appendChild(btn);
         }
 
-        function selectNumber(n) {
-            // ቁጥር ሲመረጥ ወደ Watching Only ይቀይራል (ለሙከራ)
-            selectionScreen.classList.add('hidden');
-            watchingScreen.classList.remove('hidden');
-            startTimer(25);
+        function startPreparation(n, btn) {
+            document.querySelectorAll('.btn-small').forEach(b => b.classList.remove('selected-btn'));
+            btn.classList.add('selected-btn');
+            document.getElementById('pre-game-card').style.display = 'block';
+            generateCard('preview-grid');
+            startTimer();
         }
 
-        // 2. የኋሊት ቆጠራ
-        function startTimer(seconds) {
-            let timeLeft = seconds;
-            let countdown = setInterval(() => {
+        function generateCard(targetId) {
+            const container = document.getElementById(targetId);
+            container.innerHTML = "";
+            myNumbers = [];
+            let cardCols = [];
+            
+            for(let i=0; i<5; i++) {
+                let col = [];
+                while(col.length < 5) {
+                    let r = Math.floor(Math.random() * (ranges[i][1] - ranges[i][0] + 1)) + ranges[i][0];
+                    if(!col.includes(r)) col.push(r);
+                }
+                cardCols.push(col);
+            }
+
+            for(let row=0; row<5; row++) {
+                for(let col=0; col<5; col++) {
+                    let val = (row===2 && col===2) ? "FREE" : cardCols[col][row];
+                    let cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.innerText = val;
+                    cell.dataset.num = val;
+                    container.appendChild(cell);
+                    if(val !== "FREE") myNumbers.push(val);
+                }
+            }
+        }
+
+        function startTimer() {
+            let timeLeft = 30;
+            const timerText = document.getElementById('timer-text');
+            let interval = setInterval(() => {
                 timeLeft--;
-                timerDisplay.innerText = `${timeLeft} s`;
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    timerDisplay.innerText = "0 s";
+                timerText.innerText = `ጨዋታው ለመጀመር ${timeLeft} ሰከንድ ይቀራል...`;
+                if(timeLeft <= 0) {
+                    clearInterval(interval);
+                    switchToGame();
                 }
             }, 1000);
         }
 
-        // መጀመሪያውኑ ቆጠራውን ጀምር
-        startTimer(25);
+        function switchToGame() {
+            document.getElementById('selection-view').style.display = 'none';
+            document.getElementById('game-view').style.display = 'flex';
+            setupSideBoard();
+            const activeGrid = document.getElementById('active-card-grid');
+            activeGrid.innerHTML = document.getElementById('preview-grid').innerHTML;
+            startGameLoop();
+        }
+
+        function setupSideBoard() {
+            const board = document.getElementById('side-board');
+            for(let i=0; i<5; i++) {
+                let colDiv = document.createElement('div');
+                colDiv.className = 'board-col';
+                let head = document.createElement('div');
+                head.className = 'board-header';
+                head.innerText = letters[i];
+                colDiv.appendChild(head);
+                for(let n = ranges[i][0]; n <= ranges[i][1]; n++) {
+                    let numDiv = document.createElement('div');
+                    numDiv.className = 'board-num';
+                    numDiv.id = `board-n-${n}`;
+                    numDiv.innerText = n;
+                    colDiv.appendChild(numDiv);
+                }
+                board.appendChild(colDiv);
+            }
+        }
+
+        function startGameLoop() {
+            let pool = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            let i = 0;
+            let loop = setInterval(() => {
+                if(i >= pool.length) { clearInterval(loop); return; }
+                
+                let num = pool[i];
+                let letter = letters[Math.floor((num-1)/15)];
+                
+                // Display Call
+                document.getElementById('call-letter').innerText = letter;
+                document.getElementById('call-number').innerText = num;
+                
+                // Mark Side Board
+                document.getElementById(`board-n-${num}`).classList.add('marked-board');
+                
+                // Auto Mark User Card
+                document.querySelectorAll('#active-card-grid .cell').forEach(cell => {
+                    if(cell.dataset.num == num) {
+                        cell.classList.add('marked');
+                    }
+                });
+                
+                i++;
+            }, 4000); // Calls every 4 seconds
+        }
     </script>
 </body>
 </html>
