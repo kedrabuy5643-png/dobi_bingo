@@ -5,16 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nikel Bingo</title>
     <style>
-        body { font-family: sans-serif; background-color: #121212; color: white; text-align: center; margin: 0; padding: 20px; }
-        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 400px; margin: 0 auto; max-height: 400px; overflow-y: auto; padding: 10px; background: #1e1e1e; border-radius: 10px; }
-        .num-btn { background: #333; color: white; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 16px; }
-        .num-btn:hover { background: #555; }
-        #selection-screen, #game-screen { display: block; }
-        #game-screen { display: none; margin-top: 20px; }
-        .timer { font-size: 24px; color: #ffcc00; margin: 20px 0; }
-        .bingo-card { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-width: 300px; margin: 0 auto; background: #444; padding: 10px; border-radius: 10px; }
-        .card-cell { background: #fff; color: #000; padding: 15px; font-weight: bold; border-radius: 3px; }
+        body { font-family: sans-serif; background-color: #121212; color: white; text-align: center; margin: 0; padding: 10px; }
         .hidden { display: none !important; }
+        
+        /* Selection Grid */
+        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-height: 350px; overflow-y: auto; background: #1e1e1e; padding: 10px; border-radius: 10px; }
+        .num-btn { background: #333; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; }
+
+        /* Bingo Card Styling */
+        .bingo-header { display: grid; grid-template-columns: repeat(5, 1fr); max-width: 320px; margin: 10px auto 0 auto; font-weight: bold; font-size: 20px; color: #ffcc00; }
+        .bingo-card { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; max-width: 320px; margin: 0 auto; background: #333; padding: 8px; border-radius: 0 0 10px 10px; }
+        .card-cell { background: #fff; color: #000; padding: 12px 5px; font-weight: bold; border: 1px solid #ccc; font-size: 16px; }
+        
+        /* Game Controls */
+        .timer { font-size: 20px; color: #ffcc00; margin: 15px 0; }
+        #called-number { font-size: 40px; color: #00ff00; font-weight: bold; margin: 10px; min-height: 50px; }
     </style>
 </head>
 <body>
@@ -24,9 +29,14 @@
         <div class="number-grid" id="grid"></div>
     </div>
 
-    <div id="game-screen">
-        <div class="timer" id="timer-display">ጨዋታው ለመጀመር፡ 30 ሰከንድ</div>
-        <h3>የእርስዎ ካርቴላ</h3>
+    <div id="game-screen" class="hidden">
+        <div id="timer-display" class="timer">ጨዋታው ለመጀመር፡ 30 ሰከንድ</div>
+        <div id="called-number"></div>
+        
+        <p>የእርስዎ ካርቴላ</p>
+        <div class="bingo-header">
+            <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+        </div>
         <div class="bingo-card" id="user-card"></div>
     </div>
 
@@ -35,54 +45,75 @@
         const selectionScreen = document.getElementById('selection-screen');
         const gameScreen = document.getElementById('game-screen');
         const timerDisplay = document.getElementById('timer-display');
+        const calledNumDisplay = document.getElementById('called-number');
         const cardDisplay = document.getElementById('user-card');
 
-        // 1. ከ 1-200 ያሉ ቁጥሮችን መፍጠር
+        // 1-200 ምርጫ መፍጠር
         for (let i = 1; i <= 200; i++) {
             let btn = document.createElement('button');
             btn.innerText = i;
             btn.className = 'num-btn';
-            btn.onclick = () => selectNumber(i);
+            btn.onclick = () => {
+                selectionScreen.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+                generateStandardCard();
+                startTimer();
+            };
             grid.appendChild(btn);
         }
 
-        function selectNumber(num) {
-            selectionScreen.classList.add('hidden');
-            gameScreen.style.display = 'block';
-            
-            generateBingoCard();
-            startTimer();
-        }
-
-        // 2. የቢንጎ ካርቴላ መፍጠር (Random 25 numbers)
-        function generateBingoCard() {
+        // በስርዓት የተደረደረ ካርቴላ (B:1-15, I:16-30...)
+        function generateStandardCard() {
             cardDisplay.innerHTML = "";
-            let numbers = [];
-            while(numbers.length < 25) {
-                let r = Math.floor(Math.random() * 75) + 1;
-                if(numbers.indexOf(r) === -1) numbers.push(r);
+            let cardNumbers = [];
+            const ranges = [[1,15], [16,30], [31,45], [46,60], [61,75]];
+
+            for(let col = 0; col < 5; col++) {
+                let colNums = [];
+                while(colNums.length < 5) {
+                    let r = Math.floor(Math.random() * (ranges[col][1] - ranges[col][0] + 1)) + ranges[col][0];
+                    if(!colNums.includes(r)) colNums.push(r);
+                }
+                cardNumbers[col] = colNums;
             }
-            numbers.forEach(n => {
-                let cell = document.createElement('div');
-                cell.className = 'card-cell';
-                cell.innerText = n;
-                cardDisplay.appendChild(cell);
-            });
+
+            // ካርቴላውን በረድፍ መገንባት (Transposing for grid)
+            for(let row = 0; row < 5; row++) {
+                for(let col = 0; col < 5; col++) {
+                    let cell = document.createElement('div');
+                    cell.className = 'card-cell';
+                    cell.innerText = (row === 2 && col === 2) ? "FREE" : cardNumbers[col][row];
+                    cardDisplay.appendChild(cell);
+                }
+            }
         }
 
-        // 3. የ 30 ሰከንድ ቆጠራ
+        // ቆጠራ እና ጨዋታ መጀመር
         function startTimer() {
             let timeLeft = 30;
             let countdown = setInterval(() => {
                 timeLeft--;
                 timerDisplay.innerText = `ጨዋታው ለመጀመር፡ ${timeLeft} ሰከንድ`;
-                
                 if (timeLeft <= 0) {
                     clearInterval(countdown);
                     timerDisplay.innerText = "ጨዋታው ተጀምሯል!";
-                    // እዚህ ጋር የቦቱን የጨዋታ Logic መጥራት ትችላለህ
+                    startGameCaller();
                 }
             }, 1000);
+        }
+
+        // ቁጥር መጥራት (Caller)
+        function startGameCaller() {
+            let allNumbers = Array.from({length: 75}, (_, i) => i + 1);
+            let shuffled = allNumbers.sort(() => Math.random() - 0.5);
+            let index = 0;
+
+            setInterval(() => {
+                if(index < shuffled.length) {
+                    calledNumDisplay.innerText = `ቁጥር፡ ${shuffled[index]}`;
+                    index++;
+                }
+            }, 3000); // በየ 3 ሰከንዱ ቁጥር ይጠራል
         }
     </script>
 </body>
