@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nikel Bingo Stable</title>
+    <title>Nikel Bingo Ultimate</title>
     <style>
         :root { --bg: #1a0b38; --card: #2d1b5a; --orange: #f39c12; --green: #2ecc71; --blue: #3498db; }
+        * { box-sizing: border-box; }
         body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; text-align: center; }
         
-        /* Header */
+        /* Top Navigation Header */
         .header { display: grid; grid-template-columns: repeat(3, 1fr) 80px; gap: 5px; padding: 10px; background: #120826; border-bottom: 1px solid #444; position: sticky; top: 0; z-index: 100; }
         .stat { background: rgba(255,255,255,0.05); padding: 5px; border-radius: 5px; text-align: center; font-size: 10px; }
         .stat span { display: block; color: var(--orange); font-weight: bold; font-size: 12px; }
         .timer-box { background: #000; color: var(--orange); border: 1px solid var(--orange); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
 
-        /* Grid */
-        #selection-screen { padding: 10px; }
+        /* Selection View */
+        #selection-view { padding: 10px; display: block; }
         .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; max-height: 250px; overflow-y: auto; border: 1px solid #444; }
-        .n-btn { background: #e64a19; color: white; border: none; padding: 12px 0; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; outline: none; }
-        .n-btn.active { background: var(--orange) !important; border: 2px solid white; box-shadow: 0 0 10px var(--orange); }
+        .n-btn { background: #e64a19; color: white; border: none; padding: 12px 0; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .n-btn.active { background: var(--orange) !important; border: 2px solid white !important; box-shadow: 0 0 10px var(--orange); }
 
-        /* Card */
+        /* Hidden Bingo Card (Shows only on click) */
         #card-container { display: none; margin-top: 20px; padding-bottom: 40px; }
         .bingo-card { background: var(--card); padding: 15px 10px; border-radius: 15px; width: 280px; margin: 0 auto; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
         .b-head { display: grid; grid-template-columns: repeat(5, 1fr); color: var(--blue); font-weight: bold; font-size: 18px; margin-bottom: 8px; }
@@ -28,14 +29,14 @@
         .cell { background: white; color: black; padding: 12px 0; font-weight: bold; border-radius: 4px; text-align: center; font-size: 14px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
         .marked { background: var(--green) !important; color: white; }
 
-        /* Game Layout */
-        #game-screen { display: none; grid-template-columns: 100px 1fr; height: 90vh; }
+        /* Game Screen Layout */
+        #game-view { display: none; grid-template-columns: 100px 1fr; height: 90vh; }
         .side-board { background: #111; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; }
         .s-num { padding: 5px 0; border-bottom: 1px solid #222; color: #555; font-size: 9px; }
         .s-num.called { background: var(--orange); color: white; }
     </style>
 </head>
-<body onload="initApp()">
+<body>
 
     <div class="header">
         <div class="stat">Main Wallet<span id="mw">0.00</span></div>
@@ -44,12 +45,12 @@
         <div class="timer-box" id="timer-display">30 s</div>
     </div>
 
-    <div id="selection-screen">
+    <div id="selection-view">
         <h4 style="color: var(--orange); margin: 10px 0;">ቁጥር ይምረጡ (1-200)</h4>
         <div class="grid-container" id="num-grid"></div>
         
         <div id="card-container">
-            <p style="font-size:14px; margin: 15px 0;">የእርስዎ ካርቴላ</p>
+            <p style="font-size:14px; margin: 15px 0;">የእርስዎ ካርቴላ ተዘጋጅቷል!</p>
             <div class="bingo-card">
                 <div class="b-head"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
                 <div class="b-grid" id="preview-grid"></div>
@@ -57,7 +58,7 @@
         </div>
     </div>
 
-    <div id="game-screen">
+    <div id="game-view">
         <div class="side-board" id="side-board"></div>
         <div style="padding: 10px; display: flex; flex-direction: column; align-items: center;">
             <div id="ball" style="width:70px; height:70px; border-radius:50%; background:white; color:black; border:4px solid var(--orange); display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:bold; margin-bottom:20px;">--</div>
@@ -71,42 +72,57 @@
     <script>
         const letters = ['B','I','N','G','O'];
         const ranges = [,,,,];
+        let cardGenerated = false;
 
-        function initApp() {
-            // 1. ታይመሩ ወዲያው ይጀምራል
+        // ገጹ ሲከፈት ወዲያው ስራ የሚጀምር ማስተናገጃ
+        document.addEventListener("DOMContentLoaded", function() {
+            // 1. ታይመሩ ወዲያውኑ መቁጠር ይጀምራል
             let timeLeft = 30;
             const timerEl = document.getElementById('timer-display');
-            const countdown = setInterval(() => {
+            const countdown = setInterval(function() {
                 timeLeft--;
                 timerEl.innerText = timeLeft + " s";
                 if(timeLeft <= 0) {
                     clearInterval(countdown);
-                    launchGame();
+                    launchGame(); // 30 ሰከንድ ሲያልቅ ወደ ጨዋታው ይሸጋገራል
                 }
             }, 1000);
 
-            // 2. ቁጥሮችን መፍጠር
+            // 2. የቁጥር በተኖችን መፍጠር
             const grid = document.getElementById('num-grid');
-            for(let i=1; i<=200; i++) {
+            for(let i = 1; i <= 200; i++) {
                 const btn = document.createElement('button');
                 btn.className = 'n-btn';
                 btn.innerText = i;
-                btn.onclick = function() {
-                    document.querySelectorAll('.n-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    showBingoCard(); // ቁጥር ሲነካ ካርቴላውን ብቻ ያሳያል
-                };
+                
+                // በአንዳንድ ስልኮች ላይ ስህተት የማይፈጥር አስተማማኝ ክሊክ
+                btn.addEventListener('click', function() {
+                    // ሁሉንም በተን ቀይ አድርጎ የተነካውን ብቻ ማድመቅ
+                    document.querySelectorAll('.n-btn').forEach(function(b) {
+                        b.classList.remove('active');
+                    });
+                    btn.classList.add('active');
+                    
+                    // ካርቴላውን ከስር ማሳየት
+                    showBingoCard();
+                });
+                
                 grid.appendChild(btn);
             }
-        }
+        });
 
         function showBingoCard() {
-            const container = document.getElementById('card-container');
-            container.style.display = 'block';
-            const preview = document.getElementById('preview-grid');
-            if(preview.innerHTML === "") { // ገና ካልተፈጠረ ብቻ
+            document.getElementById('card-container').style.display = 'block';
+            
+            // ካርቴላው አንዴ ብቻ እንዲፈጠርና ቁጥር በተጫንን ቁጥር እንዳይቀያየር
+            if (!cardGenerated) {
                 generateCells('preview-grid');
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                cardGenerated = true;
+                
+                // ወደ ካርቴላው ዝቅ እንዲል (Scroll) ማድረግ
+                setTimeout(function() { 
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); 
+                }, 100);
             }
         }
 
@@ -133,12 +149,19 @@
         }
 
         function launchGame() {
-            document.getElementById('selection-screen').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'grid';
+            document.getElementById('selection-view').style.display = 'none';
+            document.getElementById('game-view').style.display = 'grid';
+            
+            // የተፈጠረውን ካርቴላ ወደ ጨዋታው ማዛወር
+            // ቁጥር ካልተመረጠ ባዶ ካርቴላ እንዳይሆን በራስ-ሰር ይፈጥራል
+            if (!cardGenerated) {
+                generateCells('preview-grid');
+            }
             document.getElementById('game-grid').innerHTML = document.getElementById('preview-grid').innerHTML;
             
-            // Side board መፍጠር
+            // Side Board መፍጠር
             const sb = document.getElementById('side-board');
+            sb.innerHTML = "";
             for(let i=1; i<=75; i++) {
                 let d = document.createElement('div');
                 d.className = 's-num'; d.innerText = i; d.id = 'side-'+i;
@@ -150,7 +173,7 @@
         function startCalling() {
             let pool = Array.from({length: 75}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
             let idx = 0;
-            const loop = setInterval(() => {
+            const loop = setInterval(function() {
                 if(idx >= pool.length) { clearInterval(loop); return; }
                 let n = pool[idx];
                 document.getElementById('ball').innerText = n;
@@ -158,7 +181,7 @@
                 let sCell = document.getElementById('side-'+n);
                 if(sCell) sCell.classList.add('called');
 
-                document.querySelectorAll('#game-grid .cell').forEach(c => {
+                document.querySelectorAll('#game-grid .cell').forEach(function(c) {
                     if(c.dataset.v == n) c.classList.add('marked');
                 });
                 idx++;
