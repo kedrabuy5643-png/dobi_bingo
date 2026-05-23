@@ -3,27 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nikel Bingo Stable</title>
+    <title>Nikel Bingo Pro</title>
     <style>
         :root { --bg: #1a0b38; --card: #2d1b5a; --orange: #f39c12; --green: #2ecc71; --blue: #3498db; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: sans-serif; background: var(--bg); color: white; text-align: center; overflow-x: hidden; }
         
-        /* Header */
+        /* Top Header */
         .header { display: grid; grid-template-columns: repeat(3, 1fr) 80px; gap: 5px; padding: 10px; background: #120826; border-bottom: 1px solid #444; position: sticky; top: 0; z-index: 100; }
         .stat { background: rgba(255,255,255,0.05); padding: 5px; border-radius: 5px; text-align: center; font-size: 10px; }
         .stat span { display: block; color: var(--orange); font-weight: bold; font-size: 12px; }
         .timer-box { background: #000; color: var(--orange); border: 1px solid var(--orange); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
 
-        /* Selection View */
+        /* Selection */
         #selection-view { padding: 10px; }
         .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; max-height: 240px; overflow-y: auto; border: 1px solid #444; margin-bottom: 15px; }
-        
-        /* የቁጥር በተኖች ስታይል */
-        .grid-container button { background: #e64a19; color: white; border: none; padding: 12px 0; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; }
-        .grid-container button.active { background: var(--orange) !important; border: 2px solid white !important; }
+        .n-btn { background: #e64a19; color: white; border: none; padding: 12px 0; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; }
+        .n-btn.active { background: var(--orange) !important; border: 2px solid white !important; }
 
-        /* Bingo Card Container */
+        /* Bingo Card */
         #card-container { display: none; margin-top: 15px; margin-bottom: 30px; }
         .bingo-card { background: var(--card); padding: 15px 10px; border-radius: 15px; width: 280px; margin: 0 auto; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
         .b-head { display: grid; grid-template-columns: repeat(5, 1fr); color: var(--blue); font-weight: bold; font-size: 18px; margin-bottom: 8px; }
@@ -52,10 +50,9 @@
         
         <div class="grid-container" id="num-grid">
             <script>
-                // ይህ አጭር ትዕዛዝ ገጹ ከመከፈቱ በፊት HTML ላይ ቁጥሮቹን ያትማል
                 let html = "";
                 for(let i=1; i<=200; i++) {
-                    html += `<button id="n-${i}" onclick="clickNumber(${i})">${i}</button>`;
+                    html += `<button class="n-btn" id="n-${i}" onclick="clickNumber(${i})">${i}</button>`;
                 }
                 document.write(html);
             </script>
@@ -85,7 +82,7 @@
         const letters = ['B','I','N','G','O'];
         const ranges = [,,,,];
         let cardGenerated = false;
-        let lastSelectedBtn = null;
+        let lastSelectedId = null;
 
         // 1. ታይመሩ ገጹ እንደተከፈተ ራሱን ችሎ ወዲያው ይጀምራል
         let timeLeft = 30;
@@ -95,21 +92,24 @@
             timerEl.innerText = timeLeft + " s";
             if(timeLeft <= 0) {
                 clearInterval(countdown);
-                launchGame(); // 30 ሰከንድ ሲያልቅ ወደ ጨዋታው ይሸጋገራል
+                launchGame();
             }
         }, 1000);
 
-        // 2. ቁጥር ሲነካ የሚሰራው እጅግ ፈጣን ስራ
+        // 2. ቁጥር ሲነካ የሚሰራው እጅግ ቀላል ስራ (Loop ሙሉ በሙሉ የለም)
         function clickNumber(num) {
-            // የድሮውን በተን ብቻ ቀለም ማጥፋት (Loop ስለማያደርግ ስልኩ አይቆምም)
-            if(lastSelectedBtn) {
-                lastSelectedBtn.classList.remove('active');
+            // የድሮውን ካለ ቀለም ማጥፋት
+            if(lastSelectedId) {
+                let prev = document.getElementById(lastSelectedId);
+                if(prev) prev.classList.remove('active');
             }
             
-            // አዲሱን በተን ማድመቅ
-            const currentBtn = document.getElementById('n-' + num);
-            currentBtn.classList.add('active');
-            lastSelectedBtn = currentBtn;
+            // አዲሱን ማድመቅ
+            let current = document.getElementById('n-' + num);
+            if(current) {
+                current.classList.add('active');
+                lastSelectedId = 'n-' + num;
+            }
             
             // ካርቴላውን ከስር ማሳየት
             document.getElementById('card-container').style.display = 'block';
@@ -146,13 +146,11 @@
             document.getElementById('selection-view').style.display = 'none';
             document.getElementById('game-view').style.display = 'grid';
             
-            // ቁጥር ሳይነካ ጊዜው ቢያልቅ እንኳ ባዶ እንዳይሆን በራሱ ይፈጥራል
             if (!cardGenerated) {
                 generateCells('preview-grid');
             }
             document.getElementById('game-grid').innerHTML = document.getElementById('preview-grid').innerHTML;
             
-            // Side Board መፍጠር
             const sb = document.getElementById('side-board');
             let sbHTML = "";
             for(let i=1; i<=75; i++) {
