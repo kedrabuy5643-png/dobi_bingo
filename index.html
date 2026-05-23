@@ -15,13 +15,15 @@
         .stat span { display: block; color: var(--orange); font-weight: bold; font-size: 12px; }
         .timer-box { background: #000; color: var(--orange); border: 1px solid var(--orange); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
 
-        /* Selection */
+        /* Selection View */
         #selection-view { padding: 10px; }
         .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; max-height: 240px; overflow-y: auto; border: 1px solid #444; margin-bottom: 15px; }
-        .n-btn { background: #e64a19; color: white; border: none; padding: 12px 0; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; }
-        .active { background: var(--orange) !important; border: 2px solid white !important; }
+        
+        /* የቁጥር በተኖች ስታይል */
+        .grid-container button { background: #e64a19; color: white; border: none; padding: 12px 0; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; }
+        .grid-container button.active { background: var(--orange) !important; border: 2px solid white !important; }
 
-        /* Card Container */
+        /* Bingo Card Container */
         #card-container { display: none; margin-top: 15px; margin-bottom: 30px; }
         .bingo-card { background: var(--card); padding: 15px 10px; border-radius: 15px; width: 280px; margin: 0 auto; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
         .b-head { display: grid; grid-template-columns: repeat(5, 1fr); color: var(--blue); font-weight: bold; font-size: 18px; margin-bottom: 8px; }
@@ -29,7 +31,7 @@
         .cell { background: white; color: black; padding: 12px 0; font-weight: bold; border-radius: 4px; text-align: center; font-size: 14px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
         .marked { background: var(--green) !important; color: white; }
 
-        /* Game Screen */
+        /* Game Screen Layout */
         #game-view { display: none; grid-template-columns: 100px 1fr; height: 90vh; }
         .side-board { background: #111; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; }
         .s-num { padding: 5px 0; border-bottom: 1px solid #222; color: #555; font-size: 9px; text-align: center; }
@@ -47,7 +49,17 @@
 
     <div id="selection-view">
         <h4 style="color: var(--orange); margin: 10px 0;">ቁጥር ይምረጡ (1-200)</h4>
-        <div class="grid-container" id="num-grid"></div>
+        
+        <div class="grid-container" id="num-grid">
+            <script>
+                // ይህ አጭር ትዕዛዝ ገጹ ከመከፈቱ በፊት HTML ላይ ቁጥሮቹን ያትማል
+                let html = "";
+                for(let i=1; i<=200; i++) {
+                    html += `<button id="n-${i}" onclick="clickNumber(${i})">${i}</button>`;
+                }
+                document.write(html);
+            </script>
+        </div>
         
         <div id="card-container">
             <p style="font-size:14px; margin-bottom: 10px; color: #bbb;">የእርስዎ ካርቴላ ተዘጋጅቷል!</p>
@@ -73,41 +85,31 @@
         const letters = ['B','I','N','G','O'];
         const ranges = [,,,,];
         let cardGenerated = false;
-        let lastSelectedBtn = null; // የድሮውን በተን መያዣ
+        let lastSelectedBtn = null;
 
-        // ገጹ ሲከፈት ታይመሩ ወዲያው ይጀምራል
-        window.addEventListener("DOMContentLoaded", function() {
-            let timeLeft = 30;
-            const timerEl = document.getElementById('timer-display');
-            const countdown = setInterval(function() {
-                timeLeft--;
-                timerEl.innerText = timeLeft + " s";
-                if(timeLeft <= 0) {
-                    clearInterval(countdown);
-                    launchGame(); 
-                }
-            }, 1000);
-
-            // የቁጥር በተኖችን መፍጠር
-            const grid = document.getElementById('num-grid');
-            let buttonsHTML = '';
-            for(let i = 1; i <= 200; i++) {
-                buttonsHTML += '<button class="n-btn" id="n-' + i + '" onclick="clickNumber(' + i + ')">' + i + '</button>';
+        // 1. ታይመሩ ገጹ እንደተከፈተ ራሱን ችሎ ወዲያው ይጀምራል
+        let timeLeft = 30;
+        const timerEl = document.getElementById('timer-display');
+        const countdown = setInterval(function() {
+            timeLeft--;
+            timerEl.innerText = timeLeft + " s";
+            if(timeLeft <= 0) {
+                clearInterval(countdown);
+                launchGame(); // 30 ሰከንድ ሲያልቅ ወደ ጨዋታው ይሸጋገራል
             }
-            grid.innerHTML = buttonsHTML;
-        });
+        }, 1000);
 
-        // እጅግ ፈጣን እና ስታክ የማያደርግ የክሊክ ስራ
+        // 2. ቁጥር ሲነካ የሚሰራው እጅግ ፈጣን ስራ
         function clickNumber(num) {
-            // የድሮውን የተነካ በተን ብቻ ቀይ ማድረግ (Loop አያደርግም)
+            // የድሮውን በተን ብቻ ቀለም ማጥፋት (Loop ስለማያደርግ ስልኩ አይቆምም)
             if(lastSelectedBtn) {
                 lastSelectedBtn.classList.remove('active');
             }
             
-            // አዲሱን ማድመቅ
+            // አዲሱን በተን ማድመቅ
             const currentBtn = document.getElementById('n-' + num);
             currentBtn.classList.add('active');
-            lastSelectedBtn = currentBtn; // አዲሱን መመዝገብ
+            lastSelectedBtn = currentBtn;
             
             // ካርቴላውን ከስር ማሳየት
             document.getElementById('card-container').style.display = 'block';
@@ -144,6 +146,7 @@
             document.getElementById('selection-view').style.display = 'none';
             document.getElementById('game-view').style.display = 'grid';
             
+            // ቁጥር ሳይነካ ጊዜው ቢያልቅ እንኳ ባዶ እንዳይሆን በራሱ ይፈጥራል
             if (!cardGenerated) {
                 generateCells('preview-grid');
             }
