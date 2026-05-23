@@ -15,13 +15,13 @@
         .stat span { display: block; color: var(--orange); font-weight: bold; font-size: 12px; }
         .timer-box { background: #000; color: var(--orange); border: 1px solid var(--orange); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
 
-        /* Selection View */
+        /* Selection */
         #selection-view { padding: 10px; }
         .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; max-height: 240px; overflow-y: auto; border: 1px solid #444; margin-bottom: 15px; }
         .n-btn { background: #e64a19; color: white; border: none; padding: 12px 0; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; }
-        .n-btn.active { background: var(--orange) !important; border: 2px solid white !important; }
+        .active { background: var(--orange) !important; border: 2px solid white !important; }
 
-        /* Bingo Card */
+        /* Card Container */
         #card-container { display: none; margin-top: 15px; margin-bottom: 30px; }
         .bingo-card { background: var(--card); padding: 15px 10px; border-radius: 15px; width: 280px; margin: 0 auto; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
         .b-head { display: grid; grid-template-columns: repeat(5, 1fr); color: var(--blue); font-weight: bold; font-size: 18px; margin-bottom: 8px; }
@@ -29,10 +29,10 @@
         .cell { background: white; color: black; padding: 12px 0; font-weight: bold; border-radius: 4px; text-align: center; font-size: 14px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
         .marked { background: var(--green) !important; color: white; }
 
-        /* Game View */
+        /* Game Screen */
         #game-view { display: none; grid-template-columns: 100px 1fr; height: 90vh; }
         .side-board { background: #111; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; }
-        .s-num { padding: 5px 0; border-bottom: 1px solid #222; color: #555; font-size: 9px; }
+        .s-num { padding: 5px 0; border-bottom: 1px solid #222; color: #555; font-size: 9px; text-align: center; }
         .s-num.called { background: var(--orange); color: white; }
     </style>
 </head>
@@ -73,10 +73,10 @@
         const letters = ['B','I','N','G','O'];
         const ranges = [,,,,];
         let cardGenerated = false;
+        let lastSelectedBtn = null; // የድሮውን በተን መያዣ
 
-        // ገጹ ሲከፈት ወዲያው ስራ የሚጀምር
+        // ገጹ ሲከፈት ታይመሩ ወዲያው ይጀምራል
         window.addEventListener("DOMContentLoaded", function() {
-            // 1. ታይመሩ ወዲያውኑ መቁጠር ይጀምራል (ቁጥር ብንነካም ባንነካም አይቆምም)
             let timeLeft = 30;
             const timerEl = document.getElementById('timer-display');
             const countdown = setInterval(function() {
@@ -88,7 +88,7 @@
                 }
             }, 1000);
 
-            // 2. የቁጥር በተኖችን መፍጠር
+            // የቁጥር በተኖችን መፍጠር
             const grid = document.getElementById('num-grid');
             let buttonsHTML = '';
             for(let i = 1; i <= 200; i++) {
@@ -97,14 +97,17 @@
             grid.innerHTML = buttonsHTML;
         });
 
-        // ቁጥር ሲነካ የሚሰራው ቀላል ተግባር
+        // እጅግ ፈጣን እና ስታክ የማያደርግ የክሊክ ስራ
         function clickNumber(num) {
-            // ሁሉንም በተን አጥፍቶ የተነካውን ማድመቅ
-            const allBtns = document.querySelectorAll('.n-btn');
-            for(let i = 0; i < allBtns.length; i++) {
-                allBtns[i].classList.remove('active');
+            // የድሮውን የተነካ በተን ብቻ ቀይ ማድረግ (Loop አያደርግም)
+            if(lastSelectedBtn) {
+                lastSelectedBtn.classList.remove('active');
             }
-            document.getElementById('n-' + num).classList.add('active');
+            
+            // አዲሱን ማድመቅ
+            const currentBtn = document.getElementById('n-' + num);
+            currentBtn.classList.add('active');
+            lastSelectedBtn = currentBtn; // አዲሱን መመዝገብ
             
             // ካርቴላውን ከስር ማሳየት
             document.getElementById('card-container').style.display = 'block';
