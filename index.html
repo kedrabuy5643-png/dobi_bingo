@@ -3,33 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nikel Bingo Ultimate</title>
+    <title>Nikel Bingo Stable</title>
     <style>
         :root { --bg: #1a0b38; --card: #2d1b5a; --orange: #f39c12; --green: #2ecc71; --blue: #3498db; }
-        * { box-sizing: border-box; }
-        body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; text-align: center; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: sans-serif; background: var(--bg); color: white; text-align: center; overflow-x: hidden; }
         
-        /* Top Navigation Header */
+        /* Header */
         .header { display: grid; grid-template-columns: repeat(3, 1fr) 80px; gap: 5px; padding: 10px; background: #120826; border-bottom: 1px solid #444; position: sticky; top: 0; z-index: 100; }
         .stat { background: rgba(255,255,255,0.05); padding: 5px; border-radius: 5px; text-align: center; font-size: 10px; }
         .stat span { display: block; color: var(--orange); font-weight: bold; font-size: 12px; }
         .timer-box { background: #000; color: var(--orange); border: 1px solid var(--orange); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
 
         /* Selection View */
-        #selection-view { padding: 10px; display: block; }
-        .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; max-height: 250px; overflow-y: auto; border: 1px solid #444; }
-        .n-btn { background: #e64a19; color: white; border: none; padding: 12px 0; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .n-btn.active { background: var(--orange) !important; border: 2px solid white !important; box-shadow: 0 0 10px var(--orange); }
+        #selection-view { padding: 10px; }
+        .grid-container { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; max-height: 240px; overflow-y: auto; border: 1px solid #444; margin-bottom: 15px; }
+        .n-btn { background: #e64a19; color: white; border: none; padding: 12px 0; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; }
+        .n-btn.active { background: var(--orange) !important; border: 2px solid white !important; }
 
-        /* Hidden Bingo Card (Shows only on click) */
-        #card-container { display: none; margin-top: 20px; padding-bottom: 40px; }
+        /* Bingo Card */
+        #card-container { display: none; margin-top: 15px; margin-bottom: 30px; }
         .bingo-card { background: var(--card); padding: 15px 10px; border-radius: 15px; width: 280px; margin: 0 auto; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
         .b-head { display: grid; grid-template-columns: repeat(5, 1fr); color: var(--blue); font-weight: bold; font-size: 18px; margin-bottom: 8px; }
         .b-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
         .cell { background: white; color: black; padding: 12px 0; font-weight: bold; border-radius: 4px; text-align: center; font-size: 14px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
         .marked { background: var(--green) !important; color: white; }
 
-        /* Game Screen Layout */
+        /* Game View */
         #game-view { display: none; grid-template-columns: 100px 1fr; height: 90vh; }
         .side-board { background: #111; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; }
         .s-num { padding: 5px 0; border-bottom: 1px solid #222; color: #555; font-size: 9px; }
@@ -50,7 +50,7 @@
         <div class="grid-container" id="num-grid"></div>
         
         <div id="card-container">
-            <p style="font-size:14px; margin: 15px 0;">የእርስዎ ካርቴላ ተዘጋጅቷል!</p>
+            <p style="font-size:14px; margin-bottom: 10px; color: #bbb;">የእርስዎ ካርቴላ ተዘጋጅቷል!</p>
             <div class="bingo-card">
                 <div class="b-head"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
                 <div class="b-grid" id="preview-grid"></div>
@@ -74,9 +74,9 @@
         const ranges = [,,,,];
         let cardGenerated = false;
 
-        // ገጹ ሲከፈት ወዲያው ስራ የሚጀምር ማስተናገጃ
-        document.addEventListener("DOMContentLoaded", function() {
-            // 1. ታይመሩ ወዲያውኑ መቁጠር ይጀምራል
+        // ገጹ ሲከፈት ወዲያው ስራ የሚጀምር
+        window.addEventListener("DOMContentLoaded", function() {
+            // 1. ታይመሩ ወዲያውኑ መቁጠር ይጀምራል (ቁጥር ብንነካም ባንነካም አይቆምም)
             let timeLeft = 30;
             const timerEl = document.getElementById('timer-display');
             const countdown = setInterval(function() {
@@ -84,45 +84,34 @@
                 timerEl.innerText = timeLeft + " s";
                 if(timeLeft <= 0) {
                     clearInterval(countdown);
-                    launchGame(); // 30 ሰከንድ ሲያልቅ ወደ ጨዋታው ይሸጋገራል
+                    launchGame(); 
                 }
             }, 1000);
 
             // 2. የቁጥር በተኖችን መፍጠር
             const grid = document.getElementById('num-grid');
+            let buttonsHTML = '';
             for(let i = 1; i <= 200; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'n-btn';
-                btn.innerText = i;
-                
-                // በአንዳንድ ስልኮች ላይ ስህተት የማይፈጥር አስተማማኝ ክሊክ
-                btn.addEventListener('click', function() {
-                    // ሁሉንም በተን ቀይ አድርጎ የተነካውን ብቻ ማድመቅ
-                    document.querySelectorAll('.n-btn').forEach(function(b) {
-                        b.classList.remove('active');
-                    });
-                    btn.classList.add('active');
-                    
-                    // ካርቴላውን ከስር ማሳየት
-                    showBingoCard();
-                });
-                
-                grid.appendChild(btn);
+                buttonsHTML += '<button class="n-btn" id="n-' + i + '" onclick="clickNumber(' + i + ')">' + i + '</button>';
             }
+            grid.innerHTML = buttonsHTML;
         });
 
-        function showBingoCard() {
+        // ቁጥር ሲነካ የሚሰራው ቀላል ተግባር
+        function clickNumber(num) {
+            // ሁሉንም በተን አጥፍቶ የተነካውን ማድመቅ
+            const allBtns = document.querySelectorAll('.n-btn');
+            for(let i = 0; i < allBtns.length; i++) {
+                allBtns[i].classList.remove('active');
+            }
+            document.getElementById('n-' + num).classList.add('active');
+            
+            // ካርቴላውን ከስር ማሳየት
             document.getElementById('card-container').style.display = 'block';
             
-            // ካርቴላው አንዴ ብቻ እንዲፈጠርና ቁጥር በተጫንን ቁጥር እንዳይቀያየር
             if (!cardGenerated) {
                 generateCells('preview-grid');
                 cardGenerated = true;
-                
-                // ወደ ካርቴላው ዝቅ እንዲል (Scroll) ማድረግ
-                setTimeout(function() { 
-                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); 
-                }, 100);
             }
         }
 
@@ -152,8 +141,6 @@
             document.getElementById('selection-view').style.display = 'none';
             document.getElementById('game-view').style.display = 'grid';
             
-            // የተፈጠረውን ካርቴላ ወደ ጨዋታው ማዛወር
-            // ቁጥር ካልተመረጠ ባዶ ካርቴላ እንዳይሆን በራስ-ሰር ይፈጥራል
             if (!cardGenerated) {
                 generateCells('preview-grid');
             }
@@ -161,12 +148,11 @@
             
             // Side Board መፍጠር
             const sb = document.getElementById('side-board');
-            sb.innerHTML = "";
+            let sbHTML = "";
             for(let i=1; i<=75; i++) {
-                let d = document.createElement('div');
-                d.className = 's-num'; d.innerText = i; d.id = 'side-'+i;
-                sb.appendChild(d);
+                sbHTML += '<div class="s-num" id="side-' + i + '">' + i + '</div>';
             }
+            sb.innerHTML = sbHTML;
             startCalling();
         }
 
@@ -181,9 +167,12 @@
                 let sCell = document.getElementById('side-'+n);
                 if(sCell) sCell.classList.add('called');
 
-                document.querySelectorAll('#game-grid .cell').forEach(function(c) {
-                    if(c.dataset.v == n) c.classList.add('marked');
-                });
+                const cells = document.querySelectorAll('#game-grid .cell');
+                for(let i = 0; i < cells.length; i++) {
+                    if(cells[i].dataset.v == n) {
+                        cells[i].classList.add('marked');
+                    }
+                }
                 idx++;
             }, 3000);
         }
